@@ -31,11 +31,19 @@
       username = "esterbeltrami";
       hostname = "Marcos-Disco-Mac-2";
       system = "aarch64-darwin";
+
+      myModules = {
+        aliases = import ./modules/aliases.nix;
+      };
     in
     {
       darwinConfigurations.${hostname} = darwin.lib.darwinSystem {
         inherit system;
         modules = [
+
+          # Import our aliases module
+          myModules.aliases
+
           # Basic Darwin configuration
           (
             { pkgs, ... }:
@@ -71,8 +79,8 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-          # Add this line to enable automatic backups
-          home-manager.backupFileExtension = "backup";
+            # Add this line to enable automatic backups
+            home-manager.backupFileExtension = "backup";
             home-manager.users.${username} =
               { pkgs, ... }:
               {
@@ -84,14 +92,14 @@
 
                   # Basic Fish configuration
                   shellInit = ''
+                    # Fish initialization
                     # Set environment variables
                     set -gx PATH $HOME/.nix-profile/bin $PATH
+
+                    # You can add more Fish-specific settings here
+                    set -g fish_greeting "Welcome to your Nix-managed Fish shell!"
                   '';
 
-                  # Add a simple alias as a test
-                  shellAliases = {
-                    "nix-edit" = "code ~/.config/nix/"; # Adjust if using a different editor
-                  };
                 };
               };
           }
