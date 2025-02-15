@@ -29,7 +29,8 @@
 
     let
       myModules = {
-        fish = import ./modules/fish.nix;
+        fish = import ./modules/fish/fish.nix;
+        fishUser = import ./modules/fish/fish-user.nix;
         machines = import ./modules/machines.nix;
       };
 
@@ -59,21 +60,6 @@
                   shell = "${pkgs.fish}/bin/fish";
                 };
 
-                # System-wide package installations
-                environment.systemPackages = with pkgs; [
-                  fish
-                ];
-
-                # Configure Fish as an available shell
-                environment.shells = with pkgs; [ fish ];
-                programs.fish = {
-                  enable = true;
-                  vendor = {
-                    config.enable = true;
-                    completions.enable = true;
-                    functions.enable = true;
-                  };
-                };
               }
             )
 
@@ -90,15 +76,8 @@
                 {
                   home.homeDirectory = "/Users/${machine.username}";
                   home.stateVersion = "23.11";
+                  imports = [ myModules.fishUser ];
 
-                  programs.fish = {
-                    enable = true;
-
-                    shellInit = ''
-                      set -gx PATH $HOME/.nix-profile/bin $PATH
-                      set -g fish_greeting "Welcome to your Nix-managed Fish shell!"
-                    '';
-                  };
                 };
             }
           ];
