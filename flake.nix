@@ -29,7 +29,7 @@
 
     let
       myModules = {
-        aliases = import ./modules/aliases.nix;
+        fish = import ./modules/fish.nix;
         machines = import ./modules/machines.nix;
       };
 
@@ -42,7 +42,7 @@
 
           modules = [
             # Include custom aliases
-            myModules.aliases
+            myModules.fish
 
             # Basic Darwin configuration
             (
@@ -66,7 +66,14 @@
 
                 # Configure Fish as an available shell
                 environment.shells = with pkgs; [ fish ];
-                programs.fish.enable = true;
+                programs.fish = {
+                  enable = true;
+                  vendor = {
+                    config.enable = true;
+                    completions.enable = true;
+                    functions.enable = true;
+                  };
+                };
               }
             )
 
@@ -86,6 +93,7 @@
 
                   programs.fish = {
                     enable = true;
+
                     shellInit = ''
                       set -gx PATH $HOME/.nix-profile/bin $PATH
                       set -g fish_greeting "Welcome to your Nix-managed Fish shell!"

@@ -47,5 +47,9 @@
     ## Location-specific Weather
     wttrh = "curl wttr.in/51.495747,-0.093726"; # Weather by coordinates
     wttrl = "curl wttr.in/London"; # Weather for London
+
+    # Fish shell
+    omh = "omf";
+    fr = "omf reload";
   };
 }
