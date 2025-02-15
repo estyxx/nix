@@ -49,8 +49,10 @@
 
       # Only initialize fisher if it's not already initialized
       if not functions -q fisher && test -f $fisher_path/functions/fisher.fish
-        source $fisher_path/functions/fisher.fish
+          source $fisher_path/functions/fisher.fish
       end
+
+      source ${pkgs.asdf-vm}/share/asdf-vm/asdf.fish
     '';
 
     shellInit = ''

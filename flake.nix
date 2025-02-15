@@ -32,6 +32,7 @@
         fish = import ./modules/fish/fish.nix;
         fishUser = import ./modules/fish/fish-user.nix;
         machines = import ./modules/machines.nix;
+        git = import ./modules/git.nix;
       };
 
       # Function to create a Darwin system configuration for each machine
@@ -76,7 +77,10 @@
                 {
                   home.homeDirectory = "/Users/${machine.username}";
                   home.stateVersion = "23.11";
-                  imports = [ myModules.fishUser ];
+                  imports = [
+                    myModules.fishUser
+                    myModules.git
+                  ];
 
                 };
             }
