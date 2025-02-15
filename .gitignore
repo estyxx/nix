@@ -1,0 +1,56 @@
+# Nix build outputs
+result
+result-*
+
+# Nix store paths
+/nix/store/*
+
+# Directory created by nix-direnv
+.direnv/
+
+# Local development files
+.envrc
+
+# Garbage collection roots
+.gcroots/
+
+# Nix build artifacts
+*.drv
+
+# System-specific files
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files created by home-manager
+*.backup
+
+# Local configuration overrides that shouldn't be tracked
+local-config.nix
+
+# Nix flake build outputs and lock file
+.std*
+flake-lock.json
+
+# Temporary files
+*.log
+*.tmp
+.tmp/
+/tmp/
+
+# Shell history files
+.bash_history
+.zsh_history
+.fish_history
+
+# Generated files
+.vagrant/
+*.qcow2

@@ -1,25 +1,24 @@
 {
   description = "Minimal MacOS Setup with Fish Shell";
 
-  # Define where Nix should look for inputs
+  # External dependencies required for our system configuration
   inputs = {
-    # nixpkgs-unstable for the latest package versions
+    # The main Nix package collection, using the unstable branch for latest versions
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
-    # home-manager for managing user environment
+    # home-manager manages user-specific configurations
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # nix-darwin for MacOS-specific settings
+    # nix-darwin provides macOS-specific configuration options
     darwin = {
       url = "github:lnl7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  # Define the configuration for your system
   outputs =
     {
       self,
@@ -27,83 +26,79 @@
       home-manager,
       darwin,
     }:
-    let
-      username = "esterbeltrami";
-      hostname = "Marcos-Disco-Mac-2";
-      system = "aarch64-darwin";
 
+    let
       myModules = {
         aliases = import ./modules/aliases.nix;
+        machines = import ./modules/machines.nix;
       };
-    in
-    {
-      darwinConfigurations.${hostname} = darwin.lib.darwinSystem {
-        inherit system;
-        modules = [
 
-          # Import our aliases module
-          myModules.aliases
+      # Function to create a Darwin system configuration for each machine
+      mkDarwinSystem =
+        name: machine:
+        darwin.lib.darwinSystem {
+          # Specify the system architecture (e.g., aarch64-darwin for Apple Silicon)
+          system = machine.system;
 
-          # Basic Darwin configuration
-          (
-            { pkgs, ... }:
-            {
-              # Add this line to fix the GID mismatch
-              # This tells nix-darwin to use the correct GID that matches your system's actual Nix installation.
-              ids.gids.nixbld = 350;
+          modules = [
+            # Include custom aliases
+            myModules.aliases
 
-              system.stateVersion = 4;
-              # Allow unfree packages
-              nixpkgs.config.allowUnfree = true;
-
-              # Set system-level user configuration
-              users.users.${username} = {
-                name = username;
-                home = "/Users/${username}";
-                shell = "${pkgs.fish}/bin/fish";
-              };
-
-              # List packages installed in system profile
-              environment.systemPackages = with pkgs; [
-                fish
-              ];
-
-              # Set Fish as a login shell
-              environment.shells = with pkgs; [ fish ];
-              programs.fish.enable = true;
-            }
-          )
-
-          # Home Manager configuration
-          home-manager.darwinModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            # Add this line to enable automatic backups
-            home-manager.backupFileExtension = "backup";
-            home-manager.users.${username} =
+            # Basic Darwin configuration
+            (
               { pkgs, ... }:
               {
-                home.homeDirectory = "/Users/${username}"; # Change this to your actual username
-                home.stateVersion = "23.11";
+                ids.gids.nixbld = 350; # Fix GID mismatch
+                system.stateVersion = 4;
+                nixpkgs.config.allowUnfree = true;
 
-                programs.fish = {
-                  enable = true;
-
-                  # Basic Fish configuration
-                  shellInit = ''
-                    # Fish initialization
-                    # Set environment variables
-                    set -gx PATH $HOME/.nix-profile/bin $PATH
-
-                    # You can add more Fish-specific settings here
-                    set -g fish_greeting "Welcome to your Nix-managed Fish shell!"
-                  '';
-
+                # Configure the user account
+                users.users.${machine.username} = {
+                  name = machine.username;
+                  home = "/Users/${machine.username}";
+                  shell = "${pkgs.fish}/bin/fish";
                 };
-              };
-          }
-        ];
-      };
+
+                # System-wide package installations
+                environment.systemPackages = with pkgs; [
+                  fish
+                ];
+
+                # Configure Fish as an available shell
+                environment.shells = with pkgs; [ fish ];
+                programs.fish.enable = true;
+              }
+            )
+
+            # Home Manager configuration
+            home-manager.darwinModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "backup";
+
+              # User-specific configuration
+              home-manager.users.${machine.username} =
+                { pkgs, ... }:
+                {
+                  home.homeDirectory = "/Users/${machine.username}";
+                  home.stateVersion = "23.11";
+
+                  programs.fish = {
+                    enable = true;
+                    shellInit = ''
+                      set -gx PATH $HOME/.nix-profile/bin $PATH
+                      set -g fish_greeting "Welcome to your Nix-managed Fish shell!"
+                    '';
+                  };
+                };
+            }
+          ];
+        };
+    in
+    {
+      # Create configurations for all machines defined in machines.nix
+      # This automatically generates a configuration for each machine
+      darwinConfigurations = builtins.mapAttrs mkDarwinSystem myModules.machines;
     };
 }
