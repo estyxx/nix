@@ -32,15 +32,6 @@
           sha256 = "sha256-T8KYLA/r/gOKvAivKRoeqIwE2pINlxFQtZJHpOy9GMM"; # Add SHA after getting it
         };
       }
-      {
-        name = "z";
-        src = pkgs.fetchFromGitHub {
-          owner = "jethrokuan";
-          repo = "z";
-          rev = "2.7.0";
-          sha256 = "0dbnir6jbwjpjalz14snzd3cgdysgcs3raznsijd6savad3qhijc";
-        };
-      }
     ];
 
     interactiveShellInit = ''
@@ -101,5 +92,51 @@
       omh = "omf";
       fr = "omf reload";
     };
+functions = {
+      # GPG helper functions
+      gpg-restart = {
+        description = "Restart GPG agent";
+        body = ''
+          gpgconf --kill gpg-agent
+          gpg-agent --daemon
+          echo "GPG agent restarted"
+        '';
+      };
+
+      gpg-test = {
+        description = "Test GPG signing functionality";
+        body = ''
+          echo "test" | gpg --clearsign --default-key 6D1237FE7876645B > /dev/null 2>&1
+          if test $status -eq 0
+              echo "✓ GPG signing test successful!"
+          else
+              echo "✗ GPG signing test failed"
+          end
+        '';
+      };
+
+      gpg-status = {
+        description = "Show GPG agent status";
+        body = ''
+          gpg-connect-agent 'keyinfo --list' /bye
+        '';
+      };
+
+      # Git helpers with GPG
+      gcs = {
+        description = "Git commit with signature";
+        body = ''
+          git commit -S $argv
+        '';
+      };
+
+      gcas = {
+        description = "Git commit all with signature";
+        body = ''
+          git commit -a -S $argv
+        '';
+      };
+    };
+
   };
 }

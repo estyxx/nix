@@ -6,7 +6,7 @@
   environment.shells = with pkgs; [
     fish
     fishPlugins.done
-    fishPlugins.fzf-fish
+
     fishPlugins.grc
     fishPlugins.autopair
     fishPlugins.tide

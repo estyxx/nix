@@ -14,30 +14,39 @@
 
     # nix-darwin provides macOS-specific configuration options
     darwin = {
-      url = "github:lnl7/nix-darwin";
+      url = "github:lnl7/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
+    homebrew-core = {
+      url = "github:homebrew/homebrew-core";
+      flake = false;
+    };
+    homebrew-cask = {
+      url = "github:homebrew/homebrew-cask";
+      flake = false;
+    };
+    homebrew-bundle = {
+      url = "github:homebrew/homebrew-bundle";
+      flake = false;
     };
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      home-manager,
-      darwin,
-    }:
-
-    let
+  outputs = {...} @ inputs:
+    with inputs; let
+      inherit (self) outputs;
       myModules = {
         fish = import ./modules/fish/fish.nix;
         fishUser = import ./modules/fish/fish-user.nix;
         machines = import ./modules/machines.nix;
         git = import ./modules/git.nix;
+        mac = import ./modules/mac.nix;
+        commonPackages = import ./modules/common-packages.nix;
       };
 
       # Function to create a Darwin system configuration for each machine
-      mkDarwinSystem =
-        name: machine:
+      mkDarwinSystem = name: machine:
         darwin.lib.darwinSystem {
           # Specify the system architecture (e.g., aarch64-darwin for Apple Silicon)
           system = machine.system;
@@ -46,12 +55,15 @@
             # Include custom aliases
             myModules.fish
 
+            myModules.mac
+            myModules.commonPackages
+
             # Basic Darwin configuration
             (
-              { pkgs, ... }:
-              {
+              {pkgs, ...}: {
                 ids.gids.nixbld = 350; # Fix GID mismatch
                 system.stateVersion = 4;
+                system.primaryUser = machine.username;
                 nixpkgs.config.allowUnfree = true;
 
                 # Configure the user account
@@ -60,7 +72,6 @@
                   home = "/Users/${machine.username}";
                   shell = "${pkgs.fish}/bin/fish";
                 };
-
               }
             )
 
@@ -72,22 +83,33 @@
               home-manager.backupFileExtension = "backup";
 
               # User-specific configuration
-              home-manager.users.${machine.username} =
-                { pkgs, ... }:
-                {
-                  home.homeDirectory = "/Users/${machine.username}";
-                  home.stateVersion = "23.11";
-                  imports = [
-                    myModules.fishUser
-                    myModules.git
-                  ];
-
+              home-manager.users.${machine.username} = {pkgs, ...}: {
+                home.homeDirectory = "/Users/${machine.username}";
+                home.stateVersion = "23.11";
+                imports = [
+                  myModules.fishUser
+                  myModules.git
+                ];
+              };
+            }
+            inputs.nix-homebrew.darwinModules.nix-homebrew
+            {
+              nix-homebrew = {
+                enable = true;
+                enableRosetta = true;
+                autoMigrate = true;
+                mutableTaps = true;
+                user = "${machine.username}";
+                taps = with inputs; {
+                  "homebrew/homebrew-core" = homebrew-core;
+                  "homebrew/homebrew-cask" = homebrew-cask;
+                  "homebrew/homebrew-bundle" = homebrew-bundle;
                 };
+              };
             }
           ];
         };
-    in
-    {
+    in {
       # Create configurations for all machines defined in machines.nix
       # This automatically generates a configuration for each machine
       darwinConfigurations = builtins.mapAttrs mkDarwinSystem myModules.machines;
