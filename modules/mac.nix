@@ -8,13 +8,19 @@
   username,
   pkgs,
   unstablePkgs,
+  home,
   ...
-} @ args: let
+}@args:
+let
   inherit (inputs) nixpkgs nixpkgs-unstable;
-in {
+in
+{
   nix = {
     settings = {
-      experimental-features = ["nix-command" "flakes"];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
       warn-dirty = false;
     };
     channel.enable = false;
@@ -37,24 +43,20 @@ in {
     global.autoUpdate = true;
     casks = [
       "arc"
-      # ... other apps
+      "nikitabobko/tap/aerospace"
+      "postgres-unofficial"
+      "telegram"
+      "spotify"
     ];
     taps = [
       "homebrew/cask"
-      # Add other taps you need
     ];
     brews = [
       "defaultbrowser"
       "gpg"
+      "direnv"
     ];
   };
-
-  system.activationScripts.setDefaultBrowser.text = ''
-    echo "Setting Arc as default browser..."
-    # Wait a bit for Arc to be fully installed
-    sleep 2
-    /opt/homebrew/bin/defaultbrowser browser arc 2>/dev/null || echo "Could not set Arc as default - you may need to do this manually"
-  '';
 
   # Keyboard
   system.keyboard.enableKeyMapping = true;
@@ -82,9 +84,34 @@ in {
     NSGlobalDomain.NSAutomaticSpellingCorrectionEnabled = false;
     LaunchServices.LSQuarantine = false; # disables "Are you sure?" for new apps
     loginwindow.GuestEnabled = false;
-    finder.FXPreferredViewStyle = "Nlsv";
 
     screencapture.location = "~/Pictures/Screenshots";
+
+    finder = {
+      # Show hidden files and directories (including those starting with .)
+      AppleShowAllFiles = true;
+
+      # Show all filename extensions
+      AppleShowAllExtensions = true;
+
+      # Keep folders on top when sorting by name
+      _FXSortFoldersFirst = true;
+
+      # Show status bar (displays item count and available space)
+      ShowStatusBar = true;
+
+      # Show path bar at bottom of Finder windows
+      ShowPathbar = true;
+
+      # Default search scope: search current folder instead of entire Mac
+      FXDefaultSearchScope = "SCcf";
+
+      # Preferred view style: list view (others: icon, column, gallery)
+      FXPreferredViewStyle = "Nlsv";
+
+      # Show warning before changing file extensions
+      FXEnableExtensionChangeWarning = false;
+    };
   };
 
   system.defaults.CustomUserPreferences = {
@@ -165,4 +192,6 @@ in {
       PMPrintingExpandedStateForPrint2 = true;
     };
   };
+  security.pam.services.sudo_local.touchIdAuth = true;
+
 }

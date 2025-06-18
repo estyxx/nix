@@ -33,8 +33,10 @@
     };
   };
 
-  outputs = {...} @ inputs:
-    with inputs; let
+  outputs =
+    { ... }@inputs:
+    with inputs;
+    let
       inherit (self) outputs;
       myModules = {
         fish = import ./modules/fish/fish.nix;
@@ -43,10 +45,13 @@
         git = import ./modules/git.nix;
         mac = import ./modules/mac.nix;
         commonPackages = import ./modules/common-packages.nix;
+        fisherPlugins = import ./modules/fish/fisher-plugins.nix;
+        dirEnv = import ./modules/direnv.nix;
       };
 
       # Function to create a Darwin system configuration for each machine
-      mkDarwinSystem = name: machine:
+      mkDarwinSystem =
+        name: machine:
         darwin.lib.darwinSystem {
           # Specify the system architecture (e.g., aarch64-darwin for Apple Silicon)
           system = machine.system;
@@ -60,7 +65,8 @@
 
             # Basic Darwin configuration
             (
-              {pkgs, ...}: {
+              { pkgs, ... }:
+              {
                 ids.gids.nixbld = 350; # Fix GID mismatch
                 system.stateVersion = 4;
                 system.primaryUser = machine.username;
@@ -83,14 +89,18 @@
               home-manager.backupFileExtension = "backup";
 
               # User-specific configuration
-              home-manager.users.${machine.username} = {pkgs, ...}: {
-                home.homeDirectory = "/Users/${machine.username}";
-                home.stateVersion = "23.11";
-                imports = [
-                  myModules.fishUser
-                  myModules.git
-                ];
-              };
+              home-manager.users.${machine.username} =
+                { pkgs, ... }:
+                {
+                  home.homeDirectory = "/Users/${machine.username}";
+                  home.stateVersion = "23.11";
+                  imports = [
+                    myModules.fishUser
+                    myModules.fisherPlugins
+                    myModules.git
+                    # myModules.dirEnv
+                  ];
+                };
             }
             inputs.nix-homebrew.darwinModules.nix-homebrew
             {
@@ -109,7 +119,8 @@
             }
           ];
         };
-    in {
+    in
+    {
       # Create configurations for all machines defined in machines.nix
       # This automatically generates a configuration for each machine
       darwinConfigurations = builtins.mapAttrs mkDarwinSystem myModules.machines;

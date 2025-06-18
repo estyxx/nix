@@ -1,99 +1,89 @@
-# modules/fish-user.nix
+# modules/fish-user.nix - User-specific Fish configuration
 { config, pkgs, ... }:
 
 {
   programs.fish = {
     enable = true;
-    plugins = [
-      {
-        name = "fisher";
-        src = pkgs.fetchFromGitHub {
-          owner = "jorgebucaran";
-          repo = "fisher";
-          rev = "4.4.5";
-          sha256 = "00zxfv1jns3001p2jhrk41vqcsd35xab8mf63fl5xg087hr0nbsl";
-        };
-      }
-      {
-        name = "fish-nvm";
-        src = pkgs.fetchFromGitHub {
-          owner = "jorgebucaran";
-          repo = "fish-nvm";
-          rev = "HEAD"; # Replace with specific version
-          sha256 = "sha256-BNnoP9gLQuZQt/0SOOsZaYOexNN2K7PKWT/paS0BJJY"; # Add SHA after getting it
-        };
-      }
-      {
-        name = "fzf.fish";
-        src = pkgs.fetchFromGitHub {
-          owner = "patrickf3139";
-          repo = "fzf.fish";
-          rev = "HEAD"; # Replace with specific version
-          sha256 = "sha256-T8KYLA/r/gOKvAivKRoeqIwE2pINlxFQtZJHpOy9GMM"; # Add SHA after getting it
-        };
-      }
-    ];
 
+    # User-specific initialization
     interactiveShellInit = ''
-      # Prevent fisher from running updates on shell start
-      set -g fisher_path $HOME/.config/fish/fisher
+      # Welcome message
+      set -g fish_greeting "Welcome to your Fish shell!"
 
-      # Only initialize fisher if it's not already initialized
-      if not functions -q fisher && test -f $fisher_path/functions/fisher.fish
-          source $fisher_path/functions/fisher.fish
+      # fzf integration if available
+      if command -v fzf >/dev/null 2>&1
+        fzf --fish | source
       end
 
-      source ${pkgs.asdf-vm}/share/asdf-vm/asdf.fish
+      # ASDF integration
+      if test -f ${pkgs.asdf-vm}/share/asdf-vm/asdf.fish
+        source ${pkgs.asdf-vm}/share/asdf-vm/asdf.fish
+      end
+
+       function __auto_activate_venv --on-variable PWD
+            if set -q VIRTUAL_ENV
+                deactivate
+            end
+
+            if test -f .venv/bin/activate.fish
+                source .venv/bin/activate.fish
+            end
+        end
+
+        __auto_activate_venv
     '';
 
     shellInit = ''
-      set -gx PATH $HOME/.nix-profile/bin $PATH
-      set -g fish_greeting "Welcome to your Nix-managed Fish shell!"
+      # Add user Nix profile to PATH early
+      set -gx PATH $HOME/.nix-profile/bin /etc/profiles/per-user/ester.beltrami/bin /run/current-system/sw/bin $PATH
+
     '';
 
+    # All your aliases in one place
     shellAliases = {
-      # Development Tools
-      ## Git - Version Control
-      g = "git"; # Quick git access
-      gs = "git status"; # Check repository status
-      gp = "git push"; # Push changes
+      # Git shortcuts
+      g = "git";
+      gst = "git status";
+      gp = "git push";
 
-      ## Docker - Container Management
-      d = "docker"; # Docker shorthand
-      dc = "docker-compose"; # Docker Compose shorthand
+      # Project navigation
+      cdk = "cd ~/Projects/kraken-core";
 
-      # System Navigation
-      ## Directory Movement
-      ".." = "cd .."; # Go up one level
-      "..." = "cd ../.."; # Go up two levels
+      # Development shortcuts
+      pcrun = "SKIP=pytest pre-commit run --files (git diff --name-only master)";
+      t = "teamsearch";
+      tf = "teamsearch find . -c .github/CODEOWNERS -t \"octoenergy/product-catalog\" -p";
 
-      ## File Listing and Management
-      ll = "ls -la"; # Detailed list view
-      ls = "ls -A --sd"; # Clean list with sorting
+      # Docker
+      d = "docker";
+      dc = "docker-compose";
 
-      # System Management
-      ## Process Control
-      kk = "kill %"; # Kill last background job
+      # Navigation
+      ".." = "cd ..";
+      "..." = "cd ../..";
 
-      # Configuration Management
-      ## Nix Configuration
-      "nix-edit" = "code ~/.config/nix/"; # Edit Nix config
+      # File management
+      ll = "ls -la";
+      ls = "ls -A --sd";
 
-      # Network Tools
-      ## HTTP Status Checking
-      hstat = "curl -o /dev/null --silent --head --write-out '%{http_code}\\n'"; # Get HTTP status
+      # System
+      kk = "kill %";
 
-      # Weather Information
-      ## Location-specific Weather
-      wttrh = "curl wttr.in/51.495747,-0.093726"; # Weather by coordinates
-      wttrl = "curl wttr.in/London"; # Weather for London
+      # Configuration
+      "nix-edit" = "code ~/.config/nix/";
 
-      # Fish shell
+      # Weather
+      wttrh = "curl wttr.in/51.495747,-0.093726";
+      wttrl = "curl wttr.in/London";
+
+      # Fish
       omh = "omf";
       fr = "omf reload";
     };
-functions = {
-      # GPG helper functions
+
+    # All your functions in one place
+    functions = {
+      # GPG functions
       gpg-restart = {
         description = "Restart GPG agent";
         body = ''
@@ -122,7 +112,7 @@ functions = {
         '';
       };
 
-      # Git helpers with GPG
+      # Git with GPG
       gcs = {
         description = "Git commit with signature";
         body = ''
@@ -137,6 +127,6 @@ functions = {
         '';
       };
     };
-
   };
+
 }
