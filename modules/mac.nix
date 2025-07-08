@@ -32,31 +32,31 @@ in
     pkgs.nerd-fonts.hack
     pkgs.nerd-fonts.jetbrains-mono
   ];
-  homebrew = {
-    enable = true;
+  # homebrew = {
+  #   enable = true;
 
-    onActivation = {
-      cleanup = "zap";
-      autoUpdate = true;
-      upgrade = true;
-    };
-    global.autoUpdate = true;
-    casks = [
-      "arc"
-      "nikitabobko/tap/aerospace"
-      "postgres-unofficial"
-      "telegram"
-      "spotify"
-    ];
-    taps = [
-      "homebrew/cask"
-    ];
-    brews = [
-      "defaultbrowser"
-      "gpg"
-      "direnv"
-    ];
-  };
+  #   onActivation = {
+  #     cleanup = "zap";
+  #     autoUpdate = true;
+  #     upgrade = true;
+  #   };
+  #   global.autoUpdate = true;
+  #   casks = [
+  #     "arc"
+  #     "nikitabobko/tap/aerospace"
+  #     "postgres-unofficial"
+  #     "telegram"
+  #     "spotify"
+  #   ];
+  #   taps = [
+  #     "homebrew/cask"
+  #   ];
+  #   brews = [
+  #     "defaultbrowser"
+  #     "gpg"
+  #     "direnv"
+  #   ];
+  # };
 
   # Keyboard
   system.keyboard.enableKeyMapping = true;

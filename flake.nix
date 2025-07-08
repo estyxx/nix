@@ -18,19 +18,19 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
-    homebrew-core = {
-      url = "github:homebrew/homebrew-core";
-      flake = false;
-    };
-    homebrew-cask = {
-      url = "github:homebrew/homebrew-cask";
-      flake = false;
-    };
-    homebrew-bundle = {
-      url = "github:homebrew/homebrew-bundle";
-      flake = false;
-    };
+    # nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
+    # homebrew-core = {
+    #   url = "github:homebrew/homebrew-core";
+    #   flake = false;
+    # };
+    # homebrew-cask = {
+    #   url = "github:homebrew/homebrew-cask";
+    #   flake = false;
+    # };
+    # homebrew-bundle = {
+    #   url = "github:homebrew/homebrew-bundle";
+    #   flake = false;
+    # };
   };
 
   outputs =
@@ -46,7 +46,6 @@
         mac = import ./modules/mac.nix;
         commonPackages = import ./modules/common-packages.nix;
         fisherPlugins = import ./modules/fish/fisher-plugins.nix;
-        dirEnv = import ./modules/direnv.nix;
       };
 
       # Function to create a Darwin system configuration for each machine
@@ -98,25 +97,29 @@
                     myModules.fishUser
                     myModules.fisherPlugins
                     myModules.git
-                    # myModules.dirEnv
                   ];
+
+                  # Pass machine config to all modules
+                  _module.args = {
+                    machineConfig = machine;
+                  };
                 };
             }
-            inputs.nix-homebrew.darwinModules.nix-homebrew
-            {
-              nix-homebrew = {
-                enable = true;
-                enableRosetta = true;
-                autoMigrate = true;
-                mutableTaps = true;
-                user = "${machine.username}";
-                taps = with inputs; {
-                  "homebrew/homebrew-core" = homebrew-core;
-                  "homebrew/homebrew-cask" = homebrew-cask;
-                  "homebrew/homebrew-bundle" = homebrew-bundle;
-                };
-              };
-            }
+            # inputs.nix-homebrew.darwinModules.nix-homebrew
+            # {
+            #   nix-homebrew = {
+            #     enable = true;
+            #     enableRosetta = true;
+            #     autoMigrate = true;
+            #     mutableTaps = true;
+            #     user = "${machine.username}";
+            #     taps = with inputs; {
+            #       "homebrew/homebrew-core" = homebrew-core;
+            #       "homebrew/homebrew-cask" = homebrew-cask;
+            #       "homebrew/homebrew-bundle" = homebrew-bundle;
+            #     };
+            #   };
+            # }
           ];
         };
     in

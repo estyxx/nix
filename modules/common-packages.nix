@@ -9,6 +9,15 @@ in
 {
   nixpkgs.config.allowUnfree = true;
   environment.systemPackages = with pkgs; [
+    ## Build essentials and compilers (added for Python/asdf compilation)
+    cmake # Build system generator
+    gnumake # GNU Make
+    autoconf # Generate configure scripts
+    libtool # Generic library support script
+    gcc # GNU Compiler Collection
+    clang # LLVM Clang compiler
+    llvm # LLVM compiler infrastructure
+
     ## Packages from Brewfile - Core development libraries
     automake # Generate Makefile.in files
     binutils # Binary utilities for development
@@ -20,6 +29,13 @@ in
     xz # LZMA compression utility
     libffi # Foreign Function Interface library
     gettext # Internationalization utilities
+
+    ## Python development dependencies (essential for asdf Python builds)
+    python3 # Default Python 3
+    python312 # Specific Python 3.12
+    python312Packages.pip # Python package installer
+    bzip2 # Compression library (needed for Python)
+    ncurses # Terminal control library (needed for Python)
 
     ## Note: memcached and libmemcached may not be available on macOS via Nix
     # memcached # Distributed memory caching system - use Homebrew instead
@@ -68,14 +84,35 @@ in
     terraform # Infrastructure as Code tool
     tree # Display directory structure as tree
 
+    ## Modern CLI tools (additional useful ones)
+    bat # Better cat with syntax highlighting
+    eza # Better ls (successor to exa)
+    git # Version control (ensure latest version)
+    curl # Transfer data from servers
+    vim # Text editor
+    neovim # Modern Vim
+    which # Locate commands
+    lsof # List open files
+
     ## Compression utilities (additional)
     lz4 # Fast compression algorithm
     zstd # Fast compression with high ratios
     unzip # Extract ZIP archives
+    gzip # GNU zip compression
 
     ## Core libraries for compatibility
     icu # International Components for Unicode
     pcre2 # Perl Compatible Regular Expressions v2
+
+    ## Security and networking
+    gnupg # GNU Privacy Guard
+    openssh # Secure Shell
+    netcat # Network utility
+
+    ## Development utilities
+    yq # YAML processor (complement to jq)
+    pandoc # Document converter
+    git-lfs # Git Large File Storage
 
     ## GUI Applications
     warp-terminal # Modern terminal

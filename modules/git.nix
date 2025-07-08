@@ -1,14 +1,19 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  machineConfig,
+  ...
+}:
 
 {
   programs = {
     git = {
       enable = true;
       userName = "Ester Beltrami";
-      userEmail = "beltrami.ester@gmail.com"; 
+      userEmail = "beltrami.ester@gmail.com";
 
       signing = {
-        key = "AF7EACF820CAEACD";
+        key = machineConfig.git.signingKey;
         signByDefault = true;
       };
 
@@ -30,12 +35,19 @@
         user = {
           name = "Ester Beltrami";
           email = "beltrami.ester@gmail.com";
-          signingkey = "AF7EACF820CAEACD";
+          key = machineConfig.git.signingKey;
         };
 
-         url."ssh://git@github.com/octoenergy/" = {
-      insteadOf = "https://github.com/octoenergy/";
-    };
+        # Only URL rewriting for kraken machines
+        url =
+          if machineConfig.profile == "kraken" then
+            {
+              "ssh://git@github.com/octoenergy/" = {
+                insteadOf = "https://github.com/octoenergy/";
+              };
+            }
+          else
+            { };
 
         # Commit configuration
         commit = {
@@ -43,7 +55,6 @@
           template = "${config.home.homeDirectory}/.config/git/commit-template.txt";
           verbose = true;
         };
-
 
         # GPG configuration
         gpg = {
@@ -53,12 +64,11 @@
           program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
         };
 
-
         init = {
           defaultBranch = "main";
           templateDir = "${config.home.homeDirectory}/.git-template";
         };
-  
+
         # Performance settings
         checkout = {
           workers = 0;
@@ -147,26 +157,26 @@
 
   home.file.".config/git/commit-template.txt" = {
     text = ''
-    # Capitalized, short (70 chars or less) summary
-    #
-    # More detailed explanatory text should be wrapped to 72 characters.
-    # The blank line above is required.
-    #
-    # Remember:
-    # 1. Use imperative mood ("Fix bug", not "Fixed bug")
-    #    - The subject should complete "If merged, this commit will..."
-    # 2. No period at the end of the summary line
-    # 3. Make commits atomic (test suite should pass after each commit)
-    # 4. Do only one thing per commit
-    # 5. Separate code movement from code changes
-    # 6. Keep refactoring separate from functional changes
-    #
-    # Explain:
-    # - Why is this change needed?
-    # - How does it address the issue?
-    #
-    # Include links to relevant tickets or resources below:
-    #
+      # Capitalized, short (70 chars or less) summary
+      #
+      # More detailed explanatory text should be wrapped to 72 characters.
+      # The blank line above is required.
+      #
+      # Remember:
+      # 1. Use imperative mood ("Fix bug", not "Fixed bug")
+      #    - The subject should complete "If merged, this commit will..."
+      # 2. No period at the end of the summary line
+      # 3. Make commits atomic (test suite should pass after each commit)
+      # 4. Do only one thing per commit
+      # 5. Separate code movement from code changes
+      # 6. Keep refactoring separate from functional changes
+      #
+      # Explain:
+      # - Why is this change needed?
+      # - How does it address the issue?
+      #
+      # Include links to relevant tickets or resources below:
+      #
     '';
   };
 
@@ -287,13 +297,13 @@
       # Cache passphrases for 8 hours (28800 seconds)
       default-cache-ttl 28800
       max-cache-ttl 86400
-      
+
       # Use pinentry-mac for macOS integration
       pinentry-program ${pkgs.pinentry_mac}/bin/pinentry-mac
-      
+
       # Enable SSH support
       enable-ssh-support
-      
+
       # Allow loopback pinentry
       allow-loopback-pinentry
     '';
@@ -304,27 +314,27 @@
     text = ''
       # Use GPG agent
       use-agent
-      
+
       # Default key
       default-key AF7EACF820CAEACD
-      
+
       # Stronger algorithms
       personal-digest-preferences SHA512 SHA384 SHA256
       personal-cipher-preferences AES256 AES192 AES
       personal-compress-preferences ZLIB BZIP2 ZIP Uncompressed
-      
+
       # Disable weak algorithms
       weak-digest SHA1
-      
+
       # Show long key IDs
       keyid-format 0xlong
-      
+
       # Show fingerprints
       with-fingerprint
-      
+
       # Cross-certify subkeys
       require-cross-certification
-      
+
       # Disable banner
       no-greeting
     '';
@@ -332,7 +342,7 @@
 
   programs.ssh = {
     enable = true;
-    
+
     # SSH client configuration
     extraConfig = ''
       # GitHub configuration
@@ -362,7 +372,6 @@
     '';
   };
 
-
   # Fish shell SSH functions
   programs.fish = {
     functions = {
@@ -389,7 +398,6 @@
           ssh-add -l
         '';
       };
-
 
       ssh-key-fingerprint = {
         description = "Show SSH key fingerprint";
