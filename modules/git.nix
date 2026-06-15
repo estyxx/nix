@@ -260,44 +260,88 @@ in
     openssh
   ];
 
-  # Fish shell GPG configuration
+  # Fish: GPG + SSH helpers (see modules/fish/fish-functions/ for kraken dev functions)
   programs.fish = {
     shellInit = ''
-      # GPG configuration
       set -gx GPG_TTY (tty)
       set -gx SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
     '';
 
-    functions = {
-      # GPG helper functions
-      gpg-restart = {
-        description = "Restart GPG agent";
-        body = ''
-          gpgconf --kill gpg-agent
-          gpg-agent --daemon
-          echo "GPG agent restarted"
-        '';
-      };
+    functions =
+      {
+        gpg-restart = {
+          description = "Restart GPG agent";
+          body = ''
+            gpgconf --kill gpg-agent
+            gpg-agent --daemon
+            echo "GPG agent restarted"
+          '';
+        };
 
-      gpg-test = {
-        description = "Test GPG signing functionality";
-        body = ''
-          echo "test" | gpg --clearsign --default-key 6D1237FE7876645B > /dev/null 2>&1
-          if test $status -eq 0
-              echo "✓ GPG signing test successful!"
-          else
-              echo "✗ GPG signing test failed"
-          end
-        '';
-      };
+        gpg-status = {
+          description = "Show GPG agent status";
+          body = ''
+            gpg-connect-agent 'keyinfo --list' /bye
+          '';
+        };
 
-      gpg-status = {
-        description = "Show GPG agent status";
-        body = ''
-          gpg-connect-agent 'keyinfo --list' /bye
-        '';
+        ssh-add-key = {
+          description = "Add SSH key to agent and keychain";
+          body = ''
+            ssh-add -K ~/.ssh/id_ed25519
+            echo "SSH key added to agent and keychain"
+          '';
+        };
+
+        ssh-test-github = {
+          description = "Test SSH connection to GitHub";
+          body = ''
+            echo "Testing SSH connection to GitHub..."
+            ssh -T git@github.com
+          '';
+        };
+
+        ssh-list-keys = {
+          description = "List SSH keys in agent";
+          body = ''
+            ssh-add -l
+          '';
+        };
+
+        ssh-key-fingerprint = {
+          description = "Show SSH key fingerprint";
+          body = ''
+            ssh-keygen -lf ~/.ssh/id_ed25519.pub
+          '';
+        };
+      }
+      // lib.optionalAttrs hasSigningKey {
+        gpg-test = {
+          description = "Test GPG signing functionality";
+          body = ''
+            echo "test" | gpg --clearsign --default-key ${machineConfig.git.signingKey} > /dev/null 2>&1
+            if test $status -eq 0
+                echo "✓ GPG signing test successful!"
+            else
+                echo "✗ GPG signing test failed"
+            end
+          '';
+        };
+
+        gcs = {
+          description = "Git commit with signature";
+          body = ''
+            git commit -S $argv
+          '';
+        };
+
+        gcas = {
+          description = "Git commit all with signature";
+          body = ''
+            git commit -a -S $argv
+          '';
+        };
       };
-    };
   };
 
   # Create GPG configuration directory and files
@@ -318,33 +362,18 @@ in
     '';
   };
 
-  home.file.".gnupg/gpg.conf" = {
+  home.file.".gnupg/gpg.conf" = lib.mkIf hasSigningKey {
     executable = true;
     text = ''
-      # Use GPG agent
       use-agent
-
-      # Default key
-      default-key AF7EACF820CAEACD
-
-      # Stronger algorithms
+      default-key ${machineConfig.git.signingKey}
       personal-digest-preferences SHA512 SHA384 SHA256
       personal-cipher-preferences AES256 AES192 AES
       personal-compress-preferences ZLIB BZIP2 ZIP Uncompressed
-
-      # Disable weak algorithms
       weak-digest SHA1
-
-      # Show long key IDs
       keyid-format 0xlong
-
-      # Show fingerprints
       with-fingerprint
-
-      # Cross-certify subkeys
       require-cross-certification
-
-      # Disable banner
       no-greeting
     '';
   };
@@ -379,42 +408,6 @@ in
           TCPKeepAlive yes
           Compression yes
     '';
-  };
-
-  # Fish shell SSH functions
-  programs.fish = {
-    functions = {
-      # SSH key management functions
-      ssh-add-key = {
-        description = "Add SSH key to agent and keychain";
-        body = ''
-          ssh-add -K ~/.ssh/id_ed25519
-          echo "SSH key added to agent and keychain"
-        '';
-      };
-
-      ssh-test-github = {
-        description = "Test SSH connection to GitHub";
-        body = ''
-          echo "Testing SSH connection to GitHub..."
-          ssh -T git@github.com
-        '';
-      };
-
-      ssh-list-keys = {
-        description = "List SSH keys in agent";
-        body = ''
-          ssh-add -l
-        '';
-      };
-
-      ssh-key-fingerprint = {
-        description = "Show SSH key fingerprint";
-        body = ''
-          ssh-keygen -lf ~/.ssh/id_ed25519.pub
-        '';
-      };
-    };
   };
 
 }

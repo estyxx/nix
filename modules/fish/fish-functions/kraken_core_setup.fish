@@ -4,7 +4,7 @@ function kraken_core_setup --on-variable PWD
     set kraken_core_dir $HOME/Projects/kraken-core
 
     # Check if we're in the kraken-core directory
-    if test "$PWD" = "/Users/ester.beltrami/Projects/kraken-core" -o "$PWD" = "$kraken_core_dir"
+    if test "$PWD" = "$kraken_core_dir"
         # Activate virtual environment
         source ~/.virtualenvs/kraken-core/bin/activate.fish
 

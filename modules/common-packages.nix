@@ -1,11 +1,4 @@
-{
-  inputs,
-  pkgs,
-  ...
-}:
-let
-  inherit (inputs) nixpkgs nixpkgs-unstable;
-in
+{ pkgs, ... }:
 {
   nixpkgs.config.allowUnfree = true;
   environment.systemPackages = with pkgs; [

@@ -16,7 +16,8 @@ tools, Git/GPG signing, macOS defaults, and AeroSpace window tiling.
 - **Window manager:** AeroSpace config with workspace rules for browsers, editors, dev
   tools, and messaging apps
 
-See [CLAUDE.md](./CLAUDE.md) for module layout and AI/agent conventions.
+See [CLAUDE.md](./CLAUDE.md) for module layout and [CONVENTIONS.md](./CONVENTIONS.md)
+for coding standards.
 
 ---
 

@@ -1,19 +1,4 @@
-{
-  inputs,
-  outputs,
-  config,
-  lib,
-  hostname,
-  system,
-  username,
-  pkgs,
-  unstablePkgs,
-  home,
-  ...
-}@args:
-let
-  inherit (inputs) nixpkgs nixpkgs-unstable;
-in
+{ pkgs, ... }:
 {
   nix = {
     settings = {
