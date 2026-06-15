@@ -381,33 +381,27 @@ in
   programs.ssh = {
     enable = true;
 
-    # SSH client configuration
-    extraConfig = ''
-      # GitHub configuration
-      Host github.com
-          HostName github.com
-          User git
-          IdentityFile ~/.ssh/id_ed25519
-          AddKeysToAgent yes
-          IdentitiesOnly yes
-
-      # GitHub Enterprise (if needed)
-      Host github-enterprise
-          HostName your-github-enterprise.com
-          User git
-          IdentityFile ~/.ssh/id_ed25519
-          AddKeysToAgent yes
-          IdentitiesOnly yes
-
-      # Default settings for all hosts
-      Host *
-          AddKeysToAgent yes
-          IdentitiesOnly yes
-          ServerAliveInterval 60
-          ServerAliveCountMax 10
-          TCPKeepAlive yes
-          Compression yes
-    '';
+    matchBlocks = {
+      "*" = {
+        extraOptions = {
+          AddKeysToAgent = "yes";
+          IdentitiesOnly = "yes";
+          ServerAliveInterval = "60";
+          ServerAliveCountMax = "10";
+          TCPKeepAlive = "yes";
+          Compression = "yes";
+        };
+      };
+      "github.com" = {
+        hostname = "github.com";
+        user = "git";
+        identityFile = [ "~/.ssh/id_ed25519" ];
+        extraOptions = {
+          AddKeysToAgent = "yes";
+          IdentitiesOnly = "yes";
+        };
+      };
+    };
   };
 
 }

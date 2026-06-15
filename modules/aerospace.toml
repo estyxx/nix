@@ -67,6 +67,10 @@ run = 'move-node-to-workspace 1'
 if.app-id = 'com.apple.Safari'  # Safari
 run = 'move-node-to-workspace 1'
 
+[[on-window-detected]]
+if.app-id = 'company.thebrowser.dia'  # Dia Browser
+run = 'move-node-to-workspace 1'
+
 # ==========================================
 # WORKSPACE 2: CODE EDITOR
 # ==========================================
@@ -105,6 +109,26 @@ run = 'move-node-to-workspace 3'
 if.app-id = 'com.docker.docker'  # Docker Desktop
 run = 'move-node-to-workspace 3'
 
+[[on-window-detected]]
+if.app-id = 'com.postmanlabs.mac'  # Postman
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'com.figma.Desktop'  # Figma
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'com.raycast.macos'  # Raycast
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'notion.id'  # Notion
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'com.anthropic.claudefordesktop'  # Claude
+run = 'move-node-to-workspace 3'
+
 # ==========================================
 # WORKSPACE 4: DISTRACTIONS
 # ==========================================
@@ -130,4 +154,16 @@ run = 'move-node-to-workspace 4'
 
 [[on-window-detected]]
 if.app-id = 'com.apple.mail'  # Mail
+run = 'move-node-to-workspace 4'
+
+[[on-window-detected]]
+if.app-id = 'com.hnc.Discord'  # Discord
+run = 'move-node-to-workspace 4'
+
+[[on-window-detected]]
+if.app-id = 'com.microsoft.teams2'  # Microsoft Teams
+run = 'move-node-to-workspace 4'
+
+[[on-window-detected]]
+if.app-id = 'us.zoom.xos'  # Zoom
 run = 'move-node-to-workspace 4'

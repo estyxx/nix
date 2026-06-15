@@ -1,0 +1,398 @@
+{
+  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+  "editor.formatOnType": false,
+  "editor.formatOnPaste": false,
+  "editor.formatOnSave": false,
+  "editor.formatOnSaveMode": "file",
+  "files.autoSave": "onFocusChange",
+  "files.exclude": {
+    "**/__pycache__": true
+  },
+  "vs-code-prettier-eslint.prettierLast": false,
+  "editor.codeActionsOnSave": {},
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[lisp]": {
+    "editor.defaultFormatter": "Sir2B.lispbeautifier"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[python]": {
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit"
+    },
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html][django-html][handlebars][hbs][mustache][jinja][jinja-html][nj][njk][nunjucks][twig]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "cSpell.language": "en",
+  "cSpell.enabledLanguageIds": [
+    "javascript",
+    "javascriptreact",
+    "markdown",
+    "php",
+    "plaintext",
+    "python",
+    "typescript",
+    "typescriptreact",
+    "yml",
+    "sql"
+  ],
+  "cSpell.userWords": [
+    "aiohttp",
+    "asana",
+    "asyncio",
+    "autouse",
+    "Beltrami",
+    "classname",
+    "Codegen",
+    "dataclasses",
+    "datatable",
+    "datatables",
+    "datetime",
+    "dateutil",
+    "docstrings",
+    "endfor",
+    "endwith",
+    "esterbeltrami",
+    "forloop",
+    "frozendict",
+    "fulfilment",
+    "idempotency",
+    "kwargs",
+    "mbps",
+    "mypy",
+    "organisation",
+    "Pdid",
+    "pycache",
+    "pycon",
+    "pydantic",
+    "pytest",
+    "pytestmark",
+    "strptime",
+    "Struct",
+    "synchronise",
+    "Torchbox",
+    "travelling",
+    "trussworks",
+    "unstruct"
+  ],
+  "colorize.languages": [
+    "javascript",
+    "typescript",
+    "python"
+  ],
+  "editor.fontFamily": "Fira Code Two iScript, FiraCode-Retina, Fira Code Retina, Fira Code, Consolas, 'Courier New', monospace, Hack Nerd Font Mono",
+  "editor.fontLigatures": true,
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": [
+          "comment",
+          "constant",
+          "keyword",
+          "markup.italic",
+          "meta.selector",
+          "storage.modifier",
+          "storage.type",
+          "storage.type.class.js",
+          "variable.language",
+          "meta.decorator",
+          "entity.name.function.decorator",
+          "variable.parameter.function.language.special.self.python",
+          "variable.parameter.function.language.special.cls.python",
+          "meta.function.decorator.python"
+        ],
+        "settings": {
+          "fontStyle": "italic"
+        }
+      },
+      {
+        "scope": [
+          "entity.other.inherited-class"
+        ],
+        "settings": {
+          "fontStyle": ""
+        }
+      }
+    ]
+  },
+  "editor.guides.indentation": false,
+  "editor.inlineSuggest.enabled": true,
+  "python.linting.flake8Args": [
+    "--ignore=E501"
+  ],
+  "python.linting.pylintArgs": [
+    "--disable=C0301"
+  ],
+  "ruff.configuration": {
+    "unsafe-fixes": true,
+    "lint": {
+      "ignore": [
+        "E501"
+      ]
+    }
+  },
+  "editor.rulers": [
+    88,
+    99
+  ],
+  "[git-commit]": {
+    "editor.rulers": [
+      50,
+      70,
+      72,
+      88
+    ]
+  },
+  "editor.suggestSelection": "first",
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "files.associations": {
+    "[Jj]enkinsfile*": "groovy"
+  },
+  "files.insertFinalNewline": true,
+  "git.suggestSmartCommit": false,
+  "github.copilot.enable": {
+    "*": true,
+    "markdown": false,
+    "plaintext": false,
+    "yaml": true
+  },
+  "grammarly.autoActivate": true,
+  "grammarly.debug": true,
+  "grammarly.diagnostics": {
+    "[markdown]": {
+      "ignore": [
+        "code",
+        "inlineCode"
+      ]
+    }
+  },
+  "grammarly.dialect": "british",
+  "grammarly.domain": "business",
+  "grammarly.emotions": [],
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "kite.showWelcomeNotificationOnStartup": false,
+  "liveshare.audio.startCallOnShare": true,
+  "mergeEditor.diffAlgorithm": "advanced",
+  "npm.keybindingsChangedWarningShown": true,
+  "plantuml.render": "PlantUMLServer",
+  "plantuml.server": " https://www.plantuml.com/plantuml",
+  "prettier.printWidth": 88,
+  "prettier.proseWrap": "never",
+  "python.autoComplete.extraPaths": [
+    "src"
+  ],
+  "python.envFile": "${workspaceRoot}/.env",
+  "python.languageServer": "None",
+  "python.terminal.activateEnvironment": false,
+  "security.workspace.trust.untrustedFiles": "open",
+  "settingsSync.ignoredSettings": [
+    "-plantuml.server",
+    "-plantuml.render"
+  ],
+  "tabnine.experimentalAutoImports": true,
+  "terminal.external.osxExec": "Warp.app",
+  "terminal.integrated.allowChords": false,
+  "terminal.integrated.defaultProfile.osx": "fish",
+  "terminal.integrated.enableMultiLinePasteWarning": false,
+  "terminal.integrated.fontFamily": "Hack Nerd Font Mono",
+  "terminal.integrated.fontSize": 15,
+  "terminal.integrated.profiles.osx": {
+    "bash": {
+      "args": [
+        "-l"
+      ],
+      "icon": "terminal-bash",
+      "path": "bash"
+    },
+    "fish": {
+      "id": "fish",
+      "title": "Fish Shell",
+      "icon": "terminal-bash",
+      "args": [
+        "-l"
+      ],
+      "path": "fish",
+      "env": {}
+    },
+    "zsh": {
+      "args": [
+        "-l"
+      ],
+      "path": "zsh"
+    }
+  },
+  "terminal.integrated.smoothScrolling": true,
+  "terminal.integrated.tabs.enabled": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+  "workbench.editorAssociations": {
+    "*.ipynb": "jupyter-notebook"
+  },
+  "workbench.iconTheme": "material-icon-theme",
+  "terminal.integrated.env.osx": {
+    "FIG_NEW_SESSION": "1"
+  },
+  "git.openRepositoryInParentFolders": "always",
+  "terminal.integrated.scrollback": 100000000,
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "playwright.reuseBrowser": false,
+  "emmet.triggerExpansionOnTab": true,
+  "editor.minimap.enabled": false,
+  "[toml]": {
+    "editor.defaultFormatter": "bodil.prettier-toml"
+  },
+  "[dockerfile]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+  },
+  "editor.fontSize": 13,
+  "security.promptForLocalFileProtocolHandling": false,
+  "remote.SSH.remotePlatform": {
+    "*.gitpod.io": "linux"
+  },
+  "editor.largeFileOptimizations": false,
+  "djlint.showInstallError": true,
+  "djlint.useVenv": false,
+  "djlint.pythonPath": "~/.asdf/shims/python",
+  "diffEditor.hideUnchangedRegions.enabled": true,
+  "workbench.colorTheme": "Cursor Dark Midnight",
+  "redhat.telemetry.enabled": true,
+  "gitlens.graph.onlyFollowFirstParent": true,
+  "gitlens.graph.dimMergeCommits": true,
+  "[dotenv]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "gitlens.outputLevel": "error",
+  "gitlens.graph.minimap.enabled": false,
+  "auto-close-tag.activationOnLanguage": [
+    "xml",
+    "php",
+    "blade",
+    "ejs",
+    "jinja",
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "plaintext",
+    "markdown",
+    "vue",
+    "liquid",
+    "erb",
+    "lang-cfml",
+    "cfml",
+    "HTML (EEx)",
+    "HTML (Eex)",
+    "plist",
+    "django-html"
+  ],
+  "errorLens.enabledDiagnosticLevels": [
+    "error",
+    "hint",
+    "info"
+  ],
+  "errorLens.gutterEmoji": {
+    "error": "\ud83d\udc80",
+    "warning": "\ud83d\ude1e",
+    "info": "\ud83c\udd97",
+    "hint": "\ud83c\udf4f"
+  },
+  "errorLens.exclude": [
+    ".*\"Meta\" overrides symbol of same name in class.*"
+  ],
+  "gitlens.views.scm.grouped.views": {
+    "commits": true,
+    "branches": true,
+    "remotes": true,
+    "stashes": false,
+    "tags": true,
+    "worktrees": true,
+    "contributors": true,
+    "repositories": false,
+    "searchAndCompare": false,
+    "launchpad": false
+  },
+  "window.closeWhenEmpty": true,
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "bookmarks.label.suggestion": "suggestWhenSelected",
+  "files.participants.timeout": 0,
+  "[nix]": {
+    "editor.defaultFormatter": "brettm12345.nixfmt-vscode"
+  },
+  "[fish]": {
+    "editor.defaultFormatter": "bmalehorn.vscode-fish"
+  },
+  "[properties]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "docker.extension.enableComposeLanguageServer": false,
+  "docker.extension.dockerEngineAvailabilityPrompt": false,
+  "accessibility.signalOptions.volume": 0,
+  "workbench.editor.editorActionsLocation": "hidden",
+  "[django-html]": {
+    "editor.defaultFormatter": "monosans.djlint"
+  },
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "editor.accessibilitySupport": "off",
+  "cursor.cpp.disabledLanguages": [
+    "markdown",
+    "plaintext"
+  ],
+  "git.blame.editorDecoration.enabled": true,
+  "editor.linkedEditing": true,
+  "explorer.confirmPasteNative": false,
+  "[dockercompose]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.autoIndent": "advanced",
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    },
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "[github-actions-workflow]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "editor.inlayHints.enabled": "off",
+  "gitlens.currentLine.enabled": false,
+  "claudeCode.preferredLocation": "panel",
+  "window.autoDetectColorScheme": false,
+  "sqltools.connections": [
+    {
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "totalenergiesgb",
+      "group": "localhost",
+      "database": "totalenergiesgb-consumer",
+      "username": "",
+      "password": ""
+    }
+  ]
+}

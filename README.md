@@ -161,12 +161,25 @@ pre-commit install
 ```bash
 cd ~/.config/nix
 
-# After editing any .nix file
+# After editing any .nix / .toml / .fish file in this repo
 sudo darwin-rebuild switch --flake .
 
-# Edit config in VS Code
+# Edit config in your editor
 nix-edit             # Fish alias → opens ~/.config/nix
 ```
+
+### What Nix manages vs what you manage
+
+- **Nix (this repo):** Fish shell, Git/GPG, Starship, AeroSpace, macOS defaults, dev CLI
+  tools
+- **asdf (Homebrew):** Python, Node, Ruby, etc. — use `.tool-versions` per project
+- **Homebrew (manual):** GUI apps + kraken `inv install-system-deps` packages
+
+Do **not** edit `~/.config/fish/config.fish` or other home-manager files directly — they
+are read-only symlinks into the Nix store. Edit sources here, then rebuild. No sudo
+needed for editing (only for `darwin-rebuild switch`).
+
+See [CONVENTIONS.md](./CONVENTIONS.md) for the full split.
 
 ### Updating dependencies
 

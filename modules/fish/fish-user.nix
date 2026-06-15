@@ -12,20 +12,13 @@
     interactiveShellInit = ''
       set -g fish_greeting "Welcome Ester to your Fish shell!"
 
-      # chruby (Homebrew)
-      for file in /opt/homebrew/share/fish/vendor_functions.d/chruby*.fish
-          test -f $file; and source $file
-      end
-
       if command -v fzf >/dev/null 2>&1
         fzf --fish | source
       end
 
-      # asdf: prefer Homebrew install, fall back to Nix
+      # asdf (Homebrew) — primary version manager for language runtimes
       if test -f /opt/homebrew/opt/asdf/libexec/asdf.fish
         source /opt/homebrew/opt/asdf/libexec/asdf.fish
-      else if test -f ${pkgs.asdf-vm}/share/asdf-vm/asdf.fish
-        source ${pkgs.asdf-vm}/share/asdf-vm/asdf.fish
       end
 
       function __auto_activate_venv --on-variable PWD
@@ -67,7 +60,7 @@
 
       kk = "kill %";
 
-      "nix-edit" = "code ~/.config/nix/";
+      "nix-edit" = "cursor ~/.config/nix/";
 
       wttrh = "curl wttr.in/51.5485162,-0.0101909?m";
       wttrl = "curl wttr.in/London?m";

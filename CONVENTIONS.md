@@ -1,5 +1,27 @@
 # Coding conventions for this repository
 
+## Toolchain philosophy
+
+This repo uses a **split responsibility** model:
+
+| Layer                     | Tool                     | Managed by                        | When to change                         |
+| ------------------------- | ------------------------ | --------------------------------- | -------------------------------------- |
+| Shell, dotfiles, macOS UI | Nix + home-manager       | `~/.config/nix`                   | Occasionally (`darwin-rebuild switch`) |
+| Language/runtime versions | **asdf** (Homebrew)      | `asdf install` / `.tool-versions` | Per project, as needed                 |
+| Kraken system deps        | Homebrew                 | `inv install-system-deps`         | Work machine setup                     |
+| GUI apps                  | Homebrew / manual `.app` | `brew install --cask`             | As needed                              |
+
+**Do not** enable nix-homebrew with `cleanup = "zap"` — it removes packages that
+kraken-core installs via invoke.
+
+**Do not** install `asdf` via Nix; use Homebrew (`brew install asdf`). Nix only provides
+build libraries (cmake, openssl, etc.) that asdf needs to compile runtimes.
+
+**Never edit generated files** (`~/.config/fish/config.fish`, `~/.aerospace.toml`,
+`~/.config/starship.toml`). They are read-only symlinks into the Nix store. Edit the
+source in this repo, then run `darwin-rebuild switch --flake .`. Sudo is not needed and
+should not be used.
+
 ## Nix
 
 - **Formatter:** RFC-style via `nixfmt-rfc-style`. Run `nix fmt` from the repo root
@@ -27,18 +49,20 @@
 
 ## File placement
 
-| Change                    | Location                             |
-| ------------------------- | ------------------------------------ |
-| New system package        | `modules/common-packages.nix`        |
-| macOS default             | `modules/mac.nix`                    |
-| AeroSpace                 | `modules/aerospace.toml`             |
-| Fish plugin               | `modules/fish/fisher-plugins.nix`    |
-| Starship prompt           | `modules/starship.toml`              |
-| Fish function (kraken)    | `modules/fish/fish-functions/*.fish` |
-| Fish alias (all machines) | `modules/fish/fish-user.nix`         |
-| Fish alias (work only)    | `modules/machines/work.nix`          |
-| Git / GPG / SSH           | `modules/git.nix`                    |
-| New machine               | `modules/machines.nix`               |
+| Change                     | Location                              |
+| -------------------------- | ------------------------------------- |
+| New system package         | `modules/common-packages.nix`         |
+| macOS default              | `modules/mac.nix`                     |
+| AeroSpace                  | `modules/aerospace.toml`              |
+| Fish plugin                | `modules/fish/fisher-plugins.nix`     |
+| Cursor settings (work)     | `modules/cursor/settings-kraken.json` |
+| Cursor settings (personal) | `modules/cursor/settings.json`        |
+| direnv Fish hook           | `modules/direnv.nix`                  |
+| Fish function (kraken)     | `modules/fish/fish-functions/*.fish`  |
+| Fish alias (all machines)  | `modules/fish/fish-user.nix`          |
+| Fish alias (work only)     | `modules/machines/work.nix`           |
+| Git / GPG / SSH            | `modules/git.nix`                     |
+| New machine                | `modules/machines.nix`                |
 
 ## Markdown
 

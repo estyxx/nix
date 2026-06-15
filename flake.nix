@@ -35,8 +35,11 @@
         mac = import ./modules/mac.nix;
         commonPackages = import ./modules/common-packages.nix;
         fisherPlugins = import ./modules/fish/fisher-plugins.nix;
+        fishCleanup = import ./modules/fish-cleanup.nix;
+        direnv = import ./modules/direnv.nix;
         aerospace = import ./modules/aerospace.nix;
         starship = import ./modules/starship.nix;
+        cursor = import ./modules/cursor.nix;
       };
 
       systems = [
@@ -88,8 +91,11 @@
                       myModules.fishUser
                       myModules.fishFunctions
                       myModules.fisherPlugins
+                      myModules.fishCleanup
+                      myModules.direnv
                       myModules.aerospace
                       myModules.starship
+                      myModules.cursor
                       myModules.git
                     ]
                     ++ lib.optional (machine.profile == "kraken") myModules.machinesWork

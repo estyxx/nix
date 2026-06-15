@@ -17,11 +17,15 @@
     pkgs.nerd-fonts.hack
     pkgs.nerd-fonts.jetbrains-mono
   ];
+  # Homebrew is intentionally NOT managed by Nix. Previous nix-homebrew attempts caused
+  # conflicts with kraken-core `inv install-system-deps` (cleanup removed brew packages).
+  # Install GUI apps and kraken system deps via Homebrew manually or invoke.
+  #
   # homebrew = {
   #   enable = true;
 
   #   onActivation = {
-  #     cleanup = "zap";
+  #     cleanup = "zap";  # DO NOT enable — removes kraken-installed brew packages
   #     autoUpdate = true;
   #     upgrade = true;
   #   };
@@ -138,12 +142,13 @@
     system.defaults.dock = {
       persistent-apps = [
         "/Applications/Arc.app"
-        "/Applications/Launchpad.app"
-        "/Applications/1Password.app"
-        "/Applications/Visual Stddudio Code.app"
+        "/Applications/Cursor.app"
         "/Applications/Warp.app"
+        "/Applications/Fork.app"
+        "/Applications/Postgres.app"
+        "/Applications/1Password.app"
         "/Applications/Slack.app"
-        "/Applications/Spotify.app"
+        "/Applications/AeroSpace.app"
       ];
     };
 

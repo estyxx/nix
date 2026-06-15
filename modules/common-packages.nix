@@ -49,7 +49,7 @@
 
     ## Additional packages you had before (known to work on macOS)
     act # Run GitHub Actions locally
-    asdf # Version manager for multiple languages
+    # asdf: installed via Homebrew, not Nix (see CONVENTIONS.md)
     awscli # AWS command line interface
     biome # Fast formatter and linter
     btop # Modern system monitor with beautiful UI
