@@ -31,7 +31,7 @@
 | ------------------------- | ------------------------------------ |
 | New system package        | `modules/common-packages.nix`        |
 | macOS default             | `modules/mac.nix`                    |
-| AeroSpace                 | `modules/aerospace.nix`              |
+| AeroSpace                 | `modules/aerospace.toml`             |
 | Fish plugin               | `modules/fish/fisher-plugins.nix`    |
 | Starship prompt           | `modules/starship.toml`              |
 | Fish function (kraken)    | `modules/fish/fish-functions/*.fish` |

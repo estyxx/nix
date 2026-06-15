@@ -17,7 +17,8 @@ modules/
   mac.nix                        # nix-darwin: Nix settings, fonts, macOS defaults
   common-packages.nix            # System-wide packages
   git.nix                        # Git, GPG, SSH, Fish crypto/SSH helpers
-  aerospace.nix                  # ~/.aerospace.toml
+  aerospace.nix                  # deploys modules/aerospace.toml → ~/.aerospace.toml
+  aerospace.toml                 # AeroSpace window manager config
   fish/
     fish.nix                     # System Fish + env vars + Homebrew PATH
     fish-user.nix                # Shared Fish aliases and shell init
@@ -77,7 +78,7 @@ pre-commit run --all-files
 | Fish alias (all machines)  | `modules/fish/fish-user.nix`                         |
 | Fish alias (work only)     | `modules/machines/work.nix`                          |
 | Fish function (kraken)     | `modules/fish/fish-functions/*.fish`                 |
-| AeroSpace                  | `modules/aerospace.nix`                              |
+| AeroSpace                  | `modules/aerospace.toml`                             |
 | Git identity, signing, SSH | `modules/git.nix`                                    |
 | Kraken auto-env on `cd`    | `modules/fish/fish-functions/kraken_core_setup.fish` |
 
