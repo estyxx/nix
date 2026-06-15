@@ -36,6 +36,7 @@
         commonPackages = import ./modules/common-packages.nix;
         fisherPlugins = import ./modules/fish/fisher-plugins.nix;
         aerospace = import ./modules/aerospace.nix;
+        starship = import ./modules/starship.nix;
       };
 
       systems = [
@@ -88,6 +89,7 @@
                       myModules.fishFunctions
                       myModules.fisherPlugins
                       myModules.aerospace
+                      myModules.starship
                       myModules.git
                     ]
                     ++ lib.optional (machine.profile == "kraken") myModules.machinesWork

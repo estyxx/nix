@@ -1,0 +1,119 @@
+palette = "ester"
+
+format = """\
+[ 󰀵 ](bg:mint fg:#090c0c)\
+[](fg:mint bg:blue)\
+$directory\
+[](fg:blue bg:pink)\
+${custom.kraken_client}\
+[](fg:pink bg:peach)\
+$python\
+[](fg:peach bg:yellow)\
+$git_branch\
+$git_status\
+$git_metrics\
+[](fg:yellow bg:ink)\
+$character\
+"""
+
+right_format = """
+$cmd_duration\
+$time"""
+
+
+[palettes.ester]
+mint        = "#7DF9AA"
+blue        = "#3B76F0"
+peach       = "#fab387"
+yellow      = "#FCF392"
+navy        = "#1C3A5E"
+dark        = "#030B16"
+ink         = "#090c0c"
+base        = "#1e1e2e"
+lavender    = "#cba6f7"
+aqua        = "#8DFBD2"
+red         = "#E84D44"
+text_light  = "#E4E4E4"
+pink        = "#BB00D4"
+
+
+
+[directory]
+format = "[ 󰝰 ($style)$path ]($style)"
+style = "fg:text_light bg:blue"
+
+truncate_to_repo = false
+truncation_length = 3
+truncation_symbol = "…/"
+
+
+[directory.substitutions]
+"Documents" = " 󰈙 "
+"Downloads" = "  "
+"Music"     = " 󰝚 "
+"Pictures"  = "  "
+"Desktop"   = " 󰟡 "
+"Videos" = " "
+".config" = ""
+"~/Projects/kraken-core" = "🐙"
+
+
+[git_branch]
+format = '[ $symbol$branch(:$remote_branch) ]($style)'
+symbol = " "
+style = "fg:ink bg:yellow"
+
+[git_status]
+format = '[$all_status]($style)'
+style = "fg:ink bg:yellow"
+conflicted = "⚠$count "
+ahead = "⇡$count "
+behind = "⇣$count "
+diverged = "⇕$count "
+untracked = "?$count "
+stashed = ""
+modified = "~$count "
+staged = "+$count "
+deleted = "✖$count "
+up_to_date = "✓"
+
+[git_metrics]
+format = "([+$added]($added_style))[]($added_style)"
+added_style = "fg:ink bg:yellow"
+deleted_style = "fg:bright-red bg:235"
+disabled = false
+
+[hg_branch]
+format = "[ $symbol$branch ]($style)"
+symbol = " "
+
+
+[character]
+success_symbol = '[](green) '
+error_symbol = '[](red) '
+
+[cmd_duration]
+format = "[](fg:lavender bg:ink)[  $duration ](fg:ink bg:lavender)[](fg:navy bg:lavender)"
+show_notifications = true
+min_time_to_notify = 45000
+
+[time]
+disabled = false
+time_format = "%R"
+format = "[](fg:navy bg:ink)[ 󱑍 $time ](fg:aqua bg:navy)"
+style = "bg:navy"
+
+[python]
+format = '[${symbol}${pyenv_prefix}(${version} )($virtualenv) ]($style)'
+symbol = " 󰌠"
+detect_files = ["pyproject.toml", "requirements.txt", ".python-version"]
+style = "fg:ink bg:peach"
+disabled = false
+
+[custom.kraken_client]
+description = "Display the current Kraken client"
+command = "echo \"$KRAKEN_CLIENT\" "
+when = "true"
+format = "[  $output ]($style)"
+style = "fg:ink bg:pink"
+ignore_timeout = true

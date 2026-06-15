@@ -1,0 +1,7 @@
+# Starship prompt configuration
+{ pkgs, ... }:
+{
+  home.packages = [ pkgs.starship ];
+
+  home.file.".config/starship.toml".source = ./starship.toml;
+}

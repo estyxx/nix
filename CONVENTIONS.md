@@ -33,6 +33,7 @@
 | macOS default             | `modules/mac.nix`                    |
 | AeroSpace                 | `modules/aerospace.nix`              |
 | Fish plugin               | `modules/fish/fisher-plugins.nix`    |
+| Starship prompt           | `modules/starship.toml`              |
 | Fish function (kraken)    | `modules/fish/fish-functions/*.fish` |
 | Fish alias (all machines) | `modules/fish/fish-user.nix`         |
 | Fish alias (work only)    | `modules/machines/work.nix`          |
