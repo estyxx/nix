@@ -9,8 +9,8 @@ function kraken_core_setup --on-variable PWD
         source ~/.virtualenvs/kraken-core/bin/activate.fish
 
         # Set environment variables globally and persistently
-        set -Ux KRAKEN_CLIENT CuckooGB
-        set -Ux DJANGO_CONFIGURATION CuckooGBMigrations
+        set -Ux KRAKEN_CLIENT TotalEnergiesGB
+        set -Ux DJANGO_CONFIGURATION TotalEnergiesGBMigrations
 
         # Optionally set aliases for working in this project
         alias manage 'python src/manage.py'

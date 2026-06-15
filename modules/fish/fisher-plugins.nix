@@ -27,6 +27,8 @@
   # AeroSpace configuration (this should probably be in a separate module)
   home.file.".aerospace.toml".text = ''
     # AeroSpace Configuration
+
+    # Basic settings
     start-at-login = true
     automatically-unhide-macos-hidden-apps = true
     accordion-padding = 30
@@ -41,12 +43,12 @@
     gaps.outer.top = 0
     gaps.outer.right = 0
 
-    # Define your 4 workspaces
+    # Define workspaces with meaningful names
     [workspace-to-monitor-force-assignment]
-    1 = 'main'
-    2 = 'main'
-    3 = 'main'
-    4 = 'main'
+    1 = 'main'  # Browser
+    2 = 'main'  # Code
+    3 = 'main'  # Dev Tools
+    4 = 'main'  # Distractions
 
     # Key bindings
     [mode.main.binding]
@@ -76,42 +78,83 @@
     # Layout management
     cmd-shift-space = 'layout floating tiling'
     alt-comma = 'layout accordion horizontal vertical'
+    alt-shift-comma = 'layout tiles horizontal vertical'  # Toggle side-by-side / stacked
 
-    # App-specific workspace assignments
-    # Browser apps in workspace 1
+    # ==========================================
+    # WORKSPACE 1: BROWSER
+    # ==========================================
     [[on-window-detected]]
     if.app-id = 'company.thebrowser.Browser'  # Arc Browser
     run = 'move-node-to-workspace 1'
 
     [[on-window-detected]]
-    if.app-id = 'company.thebrowser.dia' # Dia Browser
+    if.app-id = 'com.google.Chrome'  # Chrome
     run = 'move-node-to-workspace 1'
 
-    # Code editor in workspace 2
     [[on-window-detected]]
-    if.app-id = 'com.microsoft.VSCode' # Visual Studio Code
+    if.app-id = 'com.apple.Safari'  # Safari
+    run = 'move-node-to-workspace 1'
+
+    # ==========================================
+    # WORKSPACE 2: CODE EDITOR
+    # ==========================================
+    [[on-window-detected]]
+    if.app-id = 'com.microsoft.VSCode'  # Visual Studio Code
     run = 'move-node-to-workspace 2'
 
-    # Development tools in workspace 3
+    # ==========================================
+    # WORKSPACE 3: DEVELOPMENT TOOLS
+    # ==========================================
+    [[on-window-detected]]
+    if.app-id = 'com.apple.Terminal'  # Terminal
+    run = 'move-node-to-workspace 3'
+
+    [[on-window-detected]]
+    if.app-id = 'dev.warp.Warp-Stable'  # Warp Terminal
+    run = 'move-node-to-workspace 3'
+
     [[on-window-detected]]
     if.app-id = 'com.postgresapp.Postgres2'  # Postgres.app
     run = 'move-node-to-workspace 3'
 
     [[on-window-detected]]
-    if.app-id = 'com.DanPristupov.Fork '  # Fork Git client
+    if.app-id = 'com.DanPristupov.Fork'  # Fork Git client (note: removed space)
     run = 'move-node-to-workspace 3'
 
-    # Distractions in workspace 4
+    [[on-window-detected]]
+    if.app-id = 'com.hankinsoft.osx.sqliteprofessional'  # SQLite Pro
+    run = 'move-node-to-workspace 3'
+
+    [[on-window-detected]]
+    if.app-id = 'com.docker.docker'  # Docker Desktop
+    run = 'move-node-to-workspace 3'
+
+    # ==========================================
+    # WORKSPACE 4: DISTRACTIONS
+    # ==========================================
     [[on-window-detected]]
     if.app-id = 'com.tinyspeck.slackmacgap'  # Slack
     run = 'move-node-to-workspace 4'
 
     [[on-window-detected]]
-    if.app-id = 'ru.keepcoder.Telegram' # Telegram
+    if.app-id = 'ru.keepcoder.Telegram'  # Telegram
     run = 'move-node-to-workspace 4'
 
     [[on-window-detected]]
-    if.app-id = 'com.spotify.client' # Spotify
+    if.app-id = 'net.whatsapp.WhatsApp'  # WhatsApp
     run = 'move-node-to-workspace 4'
+
+    [[on-window-detected]]
+    if.app-id = 'com.spotify.client'  # Spotify
+    run = 'move-node-to-workspace 4'
+
+    [[on-window-detected]]
+    if.app-id = 'com.apple.Music'  # Apple Music
+    run = 'move-node-to-workspace 4'
+
+    [[on-window-detected]]
+    if.app-id = 'com.apple.mail'  # Mail
+    run = 'move-node-to-workspace 4'
+
   '';
 }

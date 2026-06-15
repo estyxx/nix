@@ -7,7 +7,7 @@ function delete-db
         echo "Example: delete-db dev_"
         return 1
     end
-    
+
     set PATTERN $argv[1]
     set DATABASES (/Applications/Postgres.app/Contents/Versions/15/bin/psql -t -c "SELECT datname FROM pg_database WHERE datname LIKE '%$PATTERN%';")
 
@@ -16,7 +16,7 @@ function delete-db
         echo "No databases found matching pattern: $PATTERN"
         return 0
     end
-    
+
     echo "Found databases matching pattern '$PATTERN':"
     for db in $DATABASES
         set db (string trim $db)
@@ -42,6 +42,5 @@ function delete-db
     else
         echo "Operation cancelled."
     end
-    I 
 
 end

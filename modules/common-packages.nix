@@ -80,7 +80,7 @@ in
     htop # Interactive process viewer
     jq # JSON processor for command line
     mc # Midnight Commander visual file manager
-    postgresql # PostgreSQL database
+    postgresql_17 # PostgreSQL database
     terraform # Infrastructure as Code tool
     tree # Display directory structure as tree
 
@@ -122,6 +122,8 @@ in
     ## VS Code extensions (requires allowUnfree = true)
     vscode-extensions.ms-vscode-remote.remote-ssh
     nixfmt-rfc-style
+
+    colorls
   ];
 
   # Note: Some packages from your Brewfile should remain in Homebrew:

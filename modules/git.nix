@@ -1,10 +1,13 @@
 {
   config,
   pkgs,
+  lib,
   machineConfig,
   ...
 }:
-
+let
+  hasSigningKey = machineConfig ? git && machineConfig.git ? signingKey;
+in
 {
   programs = {
     git = {
@@ -12,7 +15,7 @@
       userName = "Ester Beltrami";
       userEmail = "beltrami.ester@gmail.com";
 
-      signing = {
+      signing = lib.optionalAttrs hasSigningKey {
         key = machineConfig.git.signingKey;
         signByDefault = true;
       };
@@ -32,11 +35,14 @@
       ];
 
       extraConfig = {
-        user = {
-          name = "Ester Beltrami";
-          email = "beltrami.ester@gmail.com";
-          key = machineConfig.git.signingKey;
-        };
+        user =
+          {
+            name = "Ester Beltrami";
+            email = "beltrami.ester@gmail.com";
+          }
+          // lib.optionalAttrs hasSigningKey {
+            key = machineConfig.git.signingKey;
+          };
 
         # Only URL rewriting for kraken machines
         url =
@@ -50,11 +56,14 @@
             { };
 
         # Commit configuration
-        commit = {
-          gpgsign = true;
-          template = "${config.home.homeDirectory}/.config/git/commit-template.txt";
-          verbose = true;
-        };
+        commit =
+          {
+            template = "${config.home.homeDirectory}/.config/git/commit-template.txt";
+            verbose = true;
+          }
+          // lib.optionalAttrs hasSigningKey {
+            gpgsign = true;
+          };
 
         # GPG configuration
         gpg = {

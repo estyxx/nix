@@ -50,6 +50,7 @@ flake-lock.json
 .bash_history
 .zsh_history
 .fish_history
+modules/fish/fish_history
 
 # Generated files
 .vagrant/
