@@ -49,20 +49,21 @@ should not be used.
 
 ## File placement
 
-| Change                     | Location                              |
-| -------------------------- | ------------------------------------- |
-| New system package         | `modules/common-packages.nix`         |
-| macOS default              | `modules/mac.nix`                     |
-| AeroSpace                  | `modules/aerospace.toml`              |
-| Fish plugin                | `modules/fish/fisher-plugins.nix`     |
-| Cursor settings (work)     | `modules/cursor/settings-kraken.json` |
-| Cursor settings (personal) | `modules/cursor/settings.json`        |
-| direnv Fish hook           | `modules/direnv.nix`                  |
-| Fish function (kraken)     | `modules/fish/fish-functions/*.fish`  |
-| Fish alias (all machines)  | `modules/fish/fish-user.nix`          |
-| Fish alias (work only)     | `modules/machines/work.nix`           |
-| Git / GPG / SSH            | `modules/git.nix`                     |
-| New machine                | `modules/machines.nix`                |
+| Change                     | Location                                                                |
+| -------------------------- | ----------------------------------------------------------------------- |
+| New system package         | `modules/common-packages.nix`                                           |
+| macOS default              | `modules/mac.nix`                                                       |
+| AeroSpace                  | `modules/aerospace.toml`                                                |
+| Fish plugin                | `modules/fish/fisher-plugins.nix`                                       |
+| Cursor settings (work)     | `modules/cursor/settings-kraken.json`                                   |
+| Cursor settings (personal) | `modules/cursor/settings.json`                                          |
+| Cursor extensions (work)   | `modules/cursor/extensions-kraken.json` (reference; install via README) |
+| direnv Fish hook           | `modules/direnv.nix`                                                    |
+| Fish function (kraken)     | `modules/fish/fish-functions/*.fish`                                    |
+| Fish alias (all machines)  | `modules/fish/fish-user.nix`                                            |
+| Fish alias (work only)     | `modules/machines/work.nix`                                             |
+| Git / GPG / SSH            | `modules/git.nix`                                                       |
+| New machine                | `modules/machines.nix`                                                  |
 
 ## Markdown
 

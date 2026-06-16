@@ -11,7 +11,12 @@
   "vs-code-prettier-eslint.prettierLast": false,
   "editor.codeActionsOnSave": {},
   "[javascript]": {
-    "editor.defaultFormatter": "biomejs.biome"
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -26,16 +31,26 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[python]": {
-    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false,
+    "editor.formatOnSaveMode": "file",
+    "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-      "source.fixAll": "explicit"
+      "source.fixAll": "never",
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports": "explicit"
     },
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
   "[typescript]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSaveMode": "file",
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[typescriptreact]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSaveMode": "file",
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[html][django-html][handlebars][hbs][mustache][jinja][jinja-html][nj][njk][nunjucks][twig]": {
@@ -91,8 +106,16 @@
     "Torchbox",
     "travelling",
     "trussworks",
-    "unstruct"
+    "unstruct",
+    "octoenergy",
+    "supportsite",
+    "tako",
+    "usecase",
+    "usecases",
+    "xocto"
   ],
+  "css.validate": false,
+  "scss.validate": true,
   "colorize.languages": [
     "javascript",
     "typescript",
@@ -197,6 +220,12 @@
   "plantuml.server": " https://www.plantuml.com/plantuml",
   "prettier.printWidth": 88,
   "prettier.proseWrap": "never",
+  "prettier.requireConfig": false,
+  "prettier.useEditorConfig": true,
+  "prettier.trailingComma": "none",
+  "git.inputValidationSubjectLength": 70,
+  "ruff.importStrategy": "fromEnvironment",
+  "ruff.organizeImports": true,
   "python.autoComplete.extraPaths": [
     "src"
   ],
@@ -271,7 +300,7 @@
     "*.gitpod.io": "linux"
   },
   "editor.largeFileOptimizations": false,
-  "djlint.showInstallError": true,
+  "djlint.showInstallError": false,
   "djlint.useVenv": false,
   "djlint.pythonPath": "~/.asdf/shims/python",
   "diffEditor.hideUnchangedRegions.enabled": true,
@@ -306,10 +335,14 @@
     "plist",
     "django-html"
   ],
+  "errorLens.onSave": true,
   "errorLens.enabledDiagnosticLevels": [
     "error",
-    "hint",
-    "info"
+    "warning"
+  ],
+  "errorLens.excludeBySource": [
+    "Flake8(E501)",
+    "Ruff(E501)"
   ],
   "errorLens.gutterEmoji": {
     "error": "\ud83d\udc80",

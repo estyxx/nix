@@ -51,8 +51,10 @@ casks yet):
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-Follow the post-install PATH instructions for your shell, then install common apps you
-rely on (Arc, VS Code, 1Password, Postgres.app, etc.).
+Follow the post-install PATH instructions for your shell.
+
+See [Manual setup (not managed by Nix)](#manual-setup-not-managed-by-nix) for fonts, GUI
+apps, Homebrew packages, and Cursor extensions.
 
 ### 4. Clone this configuration
 
@@ -180,6 +182,136 @@ are read-only symlinks into the Nix store. Edit sources here, then rebuild. No s
 needed for editing (only for `darwin-rebuild switch`).
 
 See [CONVENTIONS.md](./CONVENTIONS.md) for the full split.
+
+---
+
+## Manual setup (not managed by Nix)
+
+Homebrew, fonts, GUI apps, and kraken system deps are **intentionally outside** this
+flake. Nix-homebrew was removed because `cleanup = "zap"` conflicted with
+`inv install-system-deps`.
+
+### Fonts
+
+Nix installs nerd-font variants to `/Library/Fonts/Nix Fonts/` (see `modules/mac.nix`):
+
+- Fira Code Nerd Font, Fira Mono Nerd Font, Hack Nerd Font Mono, JetBrains Mono Nerd
+  Font
+
+Cursor settings use:
+
+| Setting                            | Font                  | Source                             |
+| ---------------------------------- | --------------------- | ---------------------------------- |
+| `terminal.integrated.fontFamily`   | Hack Nerd Font Mono   | Nix (automatic after rebuild)      |
+| `editor.fontFamily` (first choice) | Fira Code Two iScript | **Manual** — not in Nix nerd-fonts |
+
+Install **Fira Code Two iScript** manually (the italic/ligature variant Cursor prefers):
+
+```bash
+# Option A: copy from an existing Mac (files in ~/Library/Fonts/)
+#   FiraCodeTwoiScript-Regular.ttf
+#   FiraCodeTwoiScript-Bold.ttf
+#   FiraCodeTwoiScript-Italic.ttf
+
+# Option B: plain Fira Code via Homebrew (fallback only — not Two iScript)
+brew install --cask font-fira-code
+```
+
+Plain `FiraCode-*.ttf` files in `~/Library/Fonts/` are fallbacks listed after Two
+iScript in `settings-kraken.json`.
+
+### Docker
+
+macOS needs **Docker Desktop** for the daemon — the Nix `docker` / `docker-compose`
+packages in `common-packages.nix` are CLI tools only and do not start an engine.
+
+```bash
+brew install --cask docker
+# open Docker.app once; enable "Start Docker Desktop when you log in" if you want
+```
+
+On kraken work Macs, also install the ECR credential helper (already in the brew list
+below) so `docker pull` from AWS ECR works without manual `aws ecr get-login`.
+
+Fish aliases `d` / `dc` and `DOCKER_BUILDKIT=1` are set in `modules/fish/fish.nix`.
+AeroSpace puts Docker Desktop on workspace 9 (`modules/aerospace.toml`).
+
+### Homebrew — all machines
+
+```bash
+brew install asdf direnv starship
+```
+
+Add asdf to Fish (already in `fish-user.nix` if Homebrew is at `/opt/homebrew`):
+
+```bash
+asdf plugin add python
+asdf plugin add nodejs
+# per project: asdf install && asdf local <tool> <version>
+```
+
+### Homebrew — work Macs (Kraken)
+
+CLI tools commonly installed outside Nix:
+
+```bash
+brew install kraken-cli k9s kubectx kubernetes-cli helm aws-iam-authenticator \
+  memcached libmemcached libxmlsec1 openssl@1.1 sops codeowners \
+  docker-credential-helper-ecr watchexec uv
+
+brew install --cask 1password-cli claude claude-code gitkraken-cli
+```
+
+Then install kraken system dependencies from the repo (authoritative list):
+
+```bash
+cd ~/Projects/kraken-core
+inv install-system-deps
+```
+
+Do **not** re-enable nix-homebrew cleanup — it removes packages invoke installed.
+
+### GUI apps
+
+Dock pins in `modules/mac.nix` expect these `.app` installs (Homebrew cask or manual
+download):
+
+| App            | Typical install                                                  |
+| -------------- | ---------------------------------------------------------------- |
+| Arc            | `brew install --cask arc`                                        |
+| Cursor         | [cursor.com](https://cursor.com) or `brew install --cask cursor` |
+| AeroSpace      | `brew install --cask nikitabobko/tap/aerospace`                  |
+| Warp           | `brew install --cask warp`                                       |
+| Fork           | [git-fork.com](https://git-fork.com)                             |
+| Postgres.app   | `brew install --cask postgres-unofficial`                        |
+| 1Password      | `brew install --cask 1password`                                  |
+| Slack          | `brew install --cask slack`                                      |
+| Docker Desktop | `brew install --cask docker` (see [Docker](#docker) above)       |
+
+### Cursor extensions (work profile)
+
+User settings live in Nix (`modules/cursor/settings-kraken.json`). Extension
+recommendations are listed in `modules/cursor/extensions-kraken.json` (mirrors
+`kraken-core/my.code-workspace`).
+
+Install once on a new work Mac:
+
+```bash
+for ext in charliermarsh.ruff ms-python.python ms-python.debugpy \
+  ms-python.vscode-pylance esbenp.prettier-vscode rioj7.command-variable; do
+  cursor --install-extension "$ext"
+done
+```
+
+**Keep in `my.code-workspace` (project-specific, not user config):**
+
+- Python analysis paths (`src/`, migrations excludes), pytest args, `cursorpyright`
+  paths
+- Django Fluent locale paths, `mypy.dmypyExecutable`, `search.exclude`
+- Launch configs (Support Site / API Site debug), invoke tasks, `window.title` with
+  branch
+
+Opening `kraken-core` merges workspace settings on top of user settings.
 
 ### Updating dependencies
 
