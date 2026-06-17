@@ -111,11 +111,18 @@ From the repo root:
 `~/.gnupg/gpg-agent.conf` (pinentry-mac) and can **import your signing key** without
 typing `gpg --import` manually:
 
-1. Copy your secret key backup to **`~/.config/nix/gpg-signing-key.asc`** (mode `600`),
-   **or** to **`gpg-signing-key.asc` in this repo’s root** (same folder as
-   `setup-gpg.sh`), **or** run `./setup-gpg.sh /path/to/backup.asc`, **or** set
+1. Prefer **`gpg-signing-key.asc` in this repo’s root** (same folder as `setup-gpg.sh`,
+   mode `600`). Empty `~/.config/nix/gpg-signing-key.asc` files are **ignored** so they
+   do not shadow the repo copy.
+2. **Or** copy to **`~/.config/nix/gpg-signing-key.asc`** (use a **real** source path
+   with `install`, not `/path/to/…` placeholders).
+3. **Or** run `./setup-gpg.sh /path/to/backup.asc`, **or** set
    `NIX_GPG_IMPORT=/path/to/backup.asc` and run `./setup-gpg.sh`.
-2. Optional: `NIX_GPG_KEY_ID=<fingerprint>` if you are not using the default Kraken
+
+Search order: CLI argument, then `NIX_GPG_IMPORT`, then repo `gpg-signing-key.asc`, then
+`~/.config/nix/gpg-signing-key.asc`.
+
+4. Optional: `NIX_GPG_KEY_ID=<fingerprint>` if you are not using the default Kraken
    signing key id.
 
 `gpg-signing-key.asc` is gitignored — never commit it.

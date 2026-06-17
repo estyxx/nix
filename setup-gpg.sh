@@ -3,11 +3,13 @@
 # GPG setup for macOS (Homebrew gnupg + pinentry-mac, gpg-agent, optional import).
 #
 # Fully automated path (no manual gpg --import in the terminal):
-#   1. Copy your signing key backup to ~/.config/nix/gpg-signing-key.asc (chmod 600).
-#   2. Run: ./setup-gpg.sh
+#   1. Put gpg-signing-key.asc next to setup-gpg.sh in this repo (chmod 600), then: ./setup-gpg.sh
+#   2. Or copy to ~/.config/nix/gpg-signing-key.asc (only used if non-empty and valid).
+#   3. Or: ./setup-gpg.sh /path/to/private-key.asc
+#   Or: NIX_GPG_IMPORT=/path/to/key.asc ./setup-gpg.sh
 #
-# Or pass the file: ./setup-gpg.sh /path/to/private-key.asc
-# Or: NIX_GPG_IMPORT=/path/to/key.asc ./setup-gpg.sh
+# Search order: first CLI arg, then NIX_GPG_IMPORT, then repo gpg-signing-key.asc,
+# then ~/.config/nix/gpg-signing-key.asc (empty files are skipped).
 #
 # Optional: NIX_GPG_KEY_ID=fingerprint   (default: AF7EACF820CAEACD for Kraken work key)
 
@@ -111,16 +113,17 @@ restart_gpg_agent() {
     gpg-agent --daemon
 }
 
-# First path that exists: CLI arg, env, then default next to flake config.
+# First usable path: CLI arg, env, repo gpg-signing-key.asc, then ~/.config/nix/
+# (empty files are skipped so a stale zero-byte ~/.config/nix file does not shadow the repo).
 resolve_secret_key_path() {
     local first_arg="${1:-}"
     local script_dir
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)" || script_dir=""
-    local default_config="$HOME/.config/nix/gpg-signing-key.asc"
     local default_repo="$script_dir/gpg-signing-key.asc"
+    local default_config="$HOME/.config/nix/gpg-signing-key.asc"
     local candidate
-    for candidate in "$first_arg" "${NIX_GPG_IMPORT:-}" "$default_config" "$default_repo"; do
-        if [[ -n "$candidate" && -f "$candidate" ]]; then
+    for candidate in "$first_arg" "${NIX_GPG_IMPORT:-}" "$default_repo" "$default_config"; do
+        if [[ -n "$candidate" && -f "$candidate" && -s "$candidate" ]]; then
             echo "$candidate"
             return 0
         fi
@@ -134,8 +137,16 @@ try_import_secret_key() {
         return 0
     fi
     print_warning "Importing secret key from: $path"
-    gpg --import "$path"
-    print_status "gpg finished reading $path"
+    if gpg --import "$path"; then
+        print_status "gpg finished reading $path"
+    else
+        print_error "gpg could not read a valid OpenPGP key from: $path"
+        echo ""
+        echo "Check the file is a GnuPG secret key export (e.g. output of: gpg --export-secret-keys --armor <keyid>)."
+        echo "If ~/.config/nix/gpg-signing-key.asc is wrong or empty, remove it or put the real key in"
+        echo "gpg-signing-key.asc next to setup-gpg.sh and run this script again."
+        exit 1
+    fi
 }
 
 secret_key_present() {
@@ -166,11 +177,11 @@ fi
 if ! secret_key_present "$KEY_ID"; then
     print_error "Secret key for $KEY_ID is not in the keyring."
     echo ""
-    echo "Automated import: put gpg-signing-key.asc in the repo root or under ~/.config/nix/, then re-run:"
-    echo "  install -m 600 /path/to/backup.asc \"$HOME/.config/nix/gpg-signing-key.asc\""
+    echo "Automated import (first match wins: arg, NIX_GPG_IMPORT, repo gpg-signing-key.asc, then ~/.config/nix/; empty files ignored):"
+    echo "  install -m 600 /Volumes/your-backup/signing.asc ./gpg-signing-key.asc   # next to setup-gpg.sh"
     echo "  ./setup-gpg.sh"
     echo ""
-    echo "Or put the file next to this script (same directory as setup-gpg.sh) as gpg-signing-key.asc"
+    echo "Or: install -m 600 /real/path/backup.asc \"$HOME/.config/nix/gpg-signing-key.asc\" && ./setup-gpg.sh"
     echo ""
     echo "Or pass the file: ./setup-gpg.sh /path/to/your/backup.asc"
     echo "Or: NIX_GPG_IMPORT=/path/to/your/backup.asc ./setup-gpg.sh"
