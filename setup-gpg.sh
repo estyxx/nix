@@ -11,7 +11,7 @@
 # Search order: first CLI arg, then NIX_GPG_IMPORT, then repo gpg-signing-key.asc,
 # then ~/.config/nix/gpg-signing-key.asc (empty files are skipped).
 #
-# Optional: NIX_GPG_KEY_ID=fingerprint   (default: AF7EACF820CAEACD for Kraken work key)
+# Optional: NIX_GPG_KEY_ID=keyid   (default: Kraken work signing key id from modules/machines.nix)
 
 set -euo pipefail
 

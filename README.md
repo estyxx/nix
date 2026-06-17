@@ -72,29 +72,35 @@ scutil --get LocalHostName
 # or: hostname
 ```
 
-Edit `modules/machines.nix` and add an entry:
+Edit `modules/machines.nix` and add an entry. The **left-hand string** in quotes (the
+attribute name) must be the same name you pass to `nix build` / `darwin-rebuild` as
+`#that-name` (example below uses `NIXHOST`). It is often equal to `LocalHostName`, but
+you can pick any unique string as long as it matches the commands you run.
 
 ```nix
 {
-  "Your-Hostname-Here" = {
+  "Your-Mac-Name" = {
     username = "your.macos.username";   # must match /Users/your.macos.username
-    system = "aarch64-darwin";          # or x86_64-darwin for Intel Macs
-    profile = "personal";               # or "kraken" for work
+    system = "aarch64-darwin";            # or x86_64-darwin for Intel Macs
+    profile = "personal";
   };
 }
 ```
 
-For **work Macs** (Kraken / Octopus Energy), use:
+For **work Macs** (Kraken / Octopus Energy), add `profile = "kraken"` and
+`git.signingKey`:
 
 ```nix
-"KT-MAC-XXXXXXXX" = {
-  username = "first.last";
-  system = "aarch64-darwin";
-  profile = "kraken";
-  git = {
-    signingKey = "YOUR_GPG_KEY_ID";     # public key fingerprint, not the secret key
+{
+  "KT-MAC-XXXXXXXX" = {
+    username = "first.last";
+    system = "aarch64-darwin";
+    profile = "kraken";
+    git = {
+      signingKey = "YOUR_GPG_KEY_ID";   # public key fingerprint, not the secret key
+    };
   };
-};
+}
 ```
 
 ### 6. Set up SSH and GPG (work Macs)
@@ -103,29 +109,65 @@ From the repo root:
 
 ```bash
 ./setup-ssh-key.sh    # creates ~/.ssh/id_ed25519, add .pub to GitHub
-./setup-gpg.sh        # installs gnupg + pinentry-mac via brew if missing, then GPG agent / keyring
+./setup-gpg.sh        # installs gnupg + pinentry-mac if needed, configures agent, imports signing key
 ```
 
-`setup-gpg.sh` needs [Homebrew](https://brew.sh) on PATH; it runs
-`brew install gnupg pinentry-mac` when those tools are not found. It writes
-`~/.gnupg/gpg-agent.conf` (pinentry-mac) and can **import your signing key** without
-typing `gpg --import` manually:
+#### GPG: you must bring the **secret key** from another machine
 
-1. Prefer **`gpg-signing-key.asc` in this repo’s root** (same folder as `setup-gpg.sh`,
-   mode `600`). Empty `~/.config/nix/gpg-signing-key.asc` files are **ignored** so they
-   do not shadow the repo copy.
-2. **Or** copy to **`~/.config/nix/gpg-signing-key.asc`** (use a **real** source path
-   with `install`, not `/path/to/…` placeholders).
-3. **Or** run `./setup-gpg.sh /path/to/backup.asc`, **or** set
-   `NIX_GPG_IMPORT=/path/to/backup.asc` and run `./setup-gpg.sh`.
+Git signing needs your **private** key material on this Mac. Nix cannot invent it. You
+**export once** on a PC that already has the key, **copy the file** out-of-band (never
+commit it), then `setup-gpg.sh` **imports** it here.
 
-Search order: CLI argument, then `NIX_GPG_IMPORT`, then repo `gpg-signing-key.asc`, then
-`~/.config/nix/gpg-signing-key.asc`.
+**On the Mac (or PC) that already has your signing key**
 
-4. Optional: `NIX_GPG_KEY_ID=<fingerprint>` if you are not using the default Kraken
-   signing key id.
+1. Confirm the key id (must match `git.signingKey` / `machines.nix` for this machine):
 
-`gpg-signing-key.asc` is gitignored — never commit it.
+   ```bash
+   gpg --list-secret-keys --keyid-format LONG
+   ```
+
+2. Export the **secret** key to a file (example uses **armor** so the file is plain
+   text; you can omit `--armor` for a smaller binary file — both work with
+   `setup-gpg.sh`):
+
+   ```bash
+   gpg --export-secret-keys --armor YOUR_KEY_ID > gpg-signing-key.asc
+   chmod 600 gpg-signing-key.asc
+   ```
+
+   Replace `YOUR_KEY_ID` with the id from step 1 (often the `sec` line looks like
+   `rsa4096/YOUR_KEY_ID`).
+
+3. **Move that file to the new Mac** using something you trust (AirDrop, encrypted USB,
+   `scp` over SSH, a password manager attachment, etc.). Treat it like a password:
+   anyone with the file can impersonate your Git signatures until you rotate the key.
+
+**On the new Mac**
+
+1. Put the file in **one** of these places (then run `./setup-gpg.sh`):
+
+   - **`gpg-signing-key.asc` next to `setup-gpg.sh`** in this repo (recommended), or
+   - **`~/.config/nix/gpg-signing-key.asc`**, or
+   - Pass the path: `./setup-gpg.sh /path/to/gpg-signing-key.asc`, or
+   - `NIX_GPG_IMPORT=/path/to/file.asc ./setup-gpg.sh`
+
+2. **Search order** (first non-empty file wins): CLI argument → `NIX_GPG_IMPORT` → repo
+   `gpg-signing-key.asc` → `~/.config/nix/gpg-signing-key.asc`.
+
+3. Optional: **`NIX_GPG_KEY_ID=<id>`** if the key you imported is not the default
+   expected by this script (work Kraken machines use the id in `machines.nix`).
+
+`setup-gpg.sh` needs [Homebrew](https://brew.sh); it installs `gnupg` and `pinentry-mac`
+when missing and writes `~/.gnupg/gpg-agent.conf`.
+
+#### Security: key **id** vs secret **file**
+
+- The **signing key id** (hex fingerprint fragment in `machines.nix` / Git
+  `user.signingkey`) is **not a secret**. It identifies your **public** key and shows up
+  on signed commits and GitHub anyway.
+- The **`gpg-signing-key.asc`** produced by `--export-secret-keys` **is secret**. It
+  must **never** be committed. This repo **gitignores** `gpg-signing-key.asc`; keep
+  using that exact filename so you do not accidentally track it.
 
 Add the SSH public key at
 [GitHub → Settings → SSH keys](https://github.com/settings/keys).
@@ -139,17 +181,57 @@ gpg --list-secret-keys
 
 ### 7. Build and activate
 
-Replace `Your-Hostname-Here` with the exact key from `machines.nix`:
+Use the **same quoted name** you used as the attribute key in `modules/machines.nix`
+(for example `"KT-MAC-D32YJC7C9P"`). Set it once per shell session (use **your** name,
+not a placeholder):
+
+```bash
+export NIXHOST="KT-MAC-D32YJC7C9P"
+cd ~/.config/nix
+```
+
+Check that the flake evaluates (no `sudo`):
+
+```bash
+nix build ".#darwinConfigurations.${NIXHOST}.system"
+```
+
+**`nix build` succeeding does not install nix-darwin.** Until you run the **bootstrap**
+command in the next block, **`darwin-rebuild` does not exist** — `sudo darwin-rebuild`
+will always print `command not found`. That is expected.
+
+**Bootstrap (first activation on this Mac — do not skip):**
 
 ```bash
 cd ~/.config/nix
-
-# Verify the flake evaluates
-nix build .#darwinConfigurations.Your-Hostname-Here.system
-
-# Apply system + home-manager config
-sudo darwin-rebuild switch --flake .
+nix run github:LnL7/nix-darwin/master -- switch --flake ".#${NIXHOST}"
 ```
+
+Use `sudo` if the tool asks for it. When that finishes, open a **new** terminal tab;
+then `darwin-rebuild` should be on your `PATH`.
+
+If Nix prints **Git tree … is dirty**, the build can still succeed; it only means you
+have uncommitted changes. To hide the warning: add `warn-dirty = false` to your
+[`nix.conf`](https://nixos.org/manual/nix/stable/command-ref/conf-file.html), or pass
+`--option warn-dirty false` to `nix build` / `nix run` for a one-off.
+
+**After bootstrap** (every later config change):
+
+```bash
+cd ~/.config/nix
+sudo darwin-rebuild switch --flake ".#${NIXHOST}"
+```
+
+If `sudo darwin-rebuild switch --flake .` works on your machine without `#hostname`, you
+can use that instead; with **multiple** machines in `machines.nix`, prefer an explicit
+`.#${NIXHOST}`.
+
+**If `nix build` says the attribute does not exist**, the name in the command does not
+match the left-hand string in `machines.nix` (typo, or you never added this Mac).
+
+**If `zsh: command not found: #`**, you pasted a “comment” line that is not a real shell
+comment (often a fancy Unicode `#` from a PDF or web page). Re-type `#` manually or copy
+only the fenced **bash** blocks above, one at a time.
 
 First run may take several minutes while Nix downloads packages.
 
@@ -184,11 +266,20 @@ pre-commit install
 ```bash
 cd ~/.config/nix
 
-# After editing any .nix / .toml / .fish file in this repo
-sudo darwin-rebuild switch --flake .
+sudo darwin-rebuild switch --flake ".#${NIXHOST}"
+```
 
-# Edit config in your editor
-nix-edit             # Fish alias → opens ~/.config/nix
+If **`darwin-rebuild: command not found`**, you have not finished the **bootstrap** in
+[§7 Build and activate](#7-build-and-activate) yet — run
+`nix run github:LnL7/nix-darwin/master -- switch --flake ".#${NIXHOST}"` once, then open
+a new terminal.
+
+Set `NIXHOST` to the same `machines.nix` key as in [§7](#7-build-and-activate) (or use
+`sudo darwin-rebuild switch --flake .` if that works on your machine). After editing any
+`.nix` / `.toml` / `.fish` file in this repo, run the command above.
+
+```bash
+nix-edit             # Fish alias → opens ~/.config/nix (after Fish is default shell)
 ```
 
 ### What Nix manages vs what you manage
@@ -338,7 +429,7 @@ Opening `kraken-core` merges workspace settings on top of user settings.
 
 ```bash
 nix flake update
-darwin-rebuild switch --flake .
+sudo darwin-rebuild switch --flake ".#${NIXHOST}"
 ```
 
 ---
