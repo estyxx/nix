@@ -107,7 +107,18 @@ From the repo root:
 ```
 
 `setup-gpg.sh` needs [Homebrew](https://brew.sh) on PATH; it runs
-`brew install gnupg pinentry-mac` when those tools are not found.
+`brew install gnupg pinentry-mac` when those tools are not found. It writes
+`~/.gnupg/gpg-agent.conf` (pinentry-mac) and can **import your signing key** without
+typing `gpg --import` manually:
+
+1. Copy your secret key backup to **`~/.config/nix/gpg-signing-key.asc`** (mode `600`),
+   **or** to **`gpg-signing-key.asc` in this repo’s root** (same folder as
+   `setup-gpg.sh`), **or** run `./setup-gpg.sh /path/to/backup.asc`, **or** set
+   `NIX_GPG_IMPORT=/path/to/backup.asc` and run `./setup-gpg.sh`.
+2. Optional: `NIX_GPG_KEY_ID=<fingerprint>` if you are not using the default Kraken
+   signing key id.
+
+`gpg-signing-key.asc` is gitignored — never commit it.
 
 Add the SSH public key at
 [GitHub → Settings → SSH keys](https://github.com/settings/keys).

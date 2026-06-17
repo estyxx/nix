@@ -36,6 +36,9 @@ result-*
 # Local configuration overrides that shouldn't be tracked
 local-config.nix
 
+# Secret key material for setup-gpg.sh (never commit)
+gpg-signing-key.asc
+
 # Nix flake build outputs and lock file
 .std*
 flake-lock.json

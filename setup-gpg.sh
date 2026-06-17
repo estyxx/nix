@@ -1,19 +1,25 @@
 #!/bin/bash
 
-# GPG Setup Script for macOS with Keychain Integration
-# This script helps set up GPG signing for Git commits with macOS Keychain integration
+# GPG setup for macOS (Homebrew gnupg + pinentry-mac, gpg-agent, optional import).
+#
+# Fully automated path (no manual gpg --import in the terminal):
+#   1. Copy your signing key backup to ~/.config/nix/gpg-signing-key.asc (chmod 600).
+#   2. Run: ./setup-gpg.sh
+#
+# Or pass the file: ./setup-gpg.sh /path/to/private-key.asc
+# Or: NIX_GPG_IMPORT=/path/to/key.asc ./setup-gpg.sh
+#
+# Optional: NIX_GPG_KEY_ID=fingerprint   (default: AF7EACF820CAEACD for Kraken work key)
 
-set -e
+set -euo pipefail
 
 echo "🔐 Setting up GPG for Git signing with macOS Keychain integration..."
 
-# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Function to print colored output
 print_status() {
     echo -e "${GREEN}✓${NC} $1"
 }
@@ -26,7 +32,6 @@ print_error() {
     echo -e "${RED}✗${NC} $1"
 }
 
-# Put Homebrew on PATH when the script is run from a non-interactive shell (e.g. Cursor).
 ensure_homebrew_on_path() {
     if command -v brew &>/dev/null; then
         return 0
@@ -75,57 +80,127 @@ ensure_gpg_packages() {
     print_status "gnupg and pinentry-mac are available"
 }
 
+write_gpg_agent_conf() {
+    local pinentry conf
+    pinentry=$(command -v pinentry-mac) || {
+        print_error "pinentry-mac not on PATH"
+        return 1
+    }
+    conf="$HOME/.gnupg/gpg-agent.conf"
+    mkdir -p "$HOME/.gnupg"
+    chmod 700 "$HOME/.gnupg"
+
+    if [[ -f "$conf" ]] && grep -q '^pinentry-program ' "$conf"; then
+        sed -i '' "s|^pinentry-program .*|pinentry-program $pinentry|" "$conf"
+    else
+        echo "pinentry-program $pinentry" >>"$conf"
+    fi
+
+    if ! grep -q '^default-cache-ttl ' "$conf" 2>/dev/null; then
+        echo "default-cache-ttl 600" >>"$conf"
+    fi
+    if ! grep -q '^max-cache-ttl ' "$conf" 2>/dev/null; then
+        echo "max-cache-ttl 7200" >>"$conf"
+    fi
+
+    print_status "pinentry-program set in $conf"
+}
+
+restart_gpg_agent() {
+    gpgconf --kill gpg-agent 2>/dev/null || true
+    gpg-agent --daemon
+}
+
+# First path that exists: CLI arg, env, then default next to flake config.
+resolve_secret_key_path() {
+    local first_arg="${1:-}"
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)" || script_dir=""
+    local default_config="$HOME/.config/nix/gpg-signing-key.asc"
+    local default_repo="$script_dir/gpg-signing-key.asc"
+    local candidate
+    for candidate in "$first_arg" "${NIX_GPG_IMPORT:-}" "$default_config" "$default_repo"; do
+        if [[ -n "$candidate" && -f "$candidate" ]]; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+try_import_secret_key() {
+    local path
+    if ! path=$(resolve_secret_key_path "${1:-}"); then
+        return 0
+    fi
+    print_warning "Importing secret key from: $path"
+    gpg --import "$path"
+    print_status "gpg finished reading $path"
+}
+
+secret_key_present() {
+    local key_id="$1"
+    if gpg --list-secret-keys --keyid-format LONG 2>/dev/null | grep -q "$key_id"; then
+        return 0
+    fi
+    return 1
+}
+
 ensure_gpg_packages
 
-# Create GPG directory if it doesn't exist
-mkdir -p ~/.gnupg
-chmod 700 ~/.gnupg
+mkdir -p "$HOME/.gnupg"
+chmod 700 "$HOME/.gnupg"
 
-# Step 1: Check if key already exists
-KEY_ID="AF7EACF820CAEACD"
-if gpg --list-secret-keys --keyid-format LONG | grep -q "$KEY_ID"; then
+write_gpg_agent_conf
+restart_gpg_agent
+
+KEY_ID="${NIX_GPG_KEY_ID:-AF7EACF820CAEACD}"
+
+if secret_key_present "$KEY_ID"; then
     print_status "GPG key $KEY_ID already exists in keyring"
 else
-    print_warning "GPG key $KEY_ID not found in keyring"
-    echo "Add your existing secret key to the keyring, or create a new one:"
+    try_import_secret_key "${1:-}"
+    restart_gpg_agent
+fi
+
+if ! secret_key_present "$KEY_ID"; then
+    print_error "Secret key for $KEY_ID is not in the keyring."
     echo ""
-    echo "  # Whole command (copy the line starting with gpg):"
-    echo "  gpg --import /path/to/your/private-key.asc"
+    echo "Automated import: put gpg-signing-key.asc in the repo root or under ~/.config/nix/, then re-run:"
+    echo "  install -m 600 /path/to/backup.asc \"$HOME/.config/nix/gpg-signing-key.asc\""
+    echo "  ./setup-gpg.sh"
     echo ""
-    echo "  # Or generate a new key:"
-    echo "  gpg --full-generate-key"
+    echo "Or put the file next to this script (same directory as setup-gpg.sh) as gpg-signing-key.asc"
     echo ""
-    echo "After that, run this script again."
+    echo "Or pass the file: ./setup-gpg.sh /path/to/your/backup.asc"
+    echo "Or: NIX_GPG_IMPORT=/path/to/your/backup.asc ./setup-gpg.sh"
+    echo ""
+    echo "Wrong NIX_GPG_KEY_ID? Export the fingerprint from the machine that has the key:"
+    echo "  gpg --list-secret-keys --keyid-format LONG"
     exit 1
 fi
 
-# Step 2: Configure GPG Agent for macOS Keychain
-print_status "Configuring GPG Agent..."
+print_status "Configuring GPG Agent and GPG defaults..."
 
+GPG_CONF="$HOME/.gnupg/gpg.conf"
+if [[ ! -f "$GPG_CONF" ]] || ! grep -q '^use-agent' "$GPG_CONF" 2>/dev/null; then
+    {
+        echo "use-agent"
+        echo "default-key $KEY_ID"
+    } >>"$GPG_CONF"
+    print_status "Appended use-agent and default-key to $GPG_CONF"
+fi
 
-# Step 3: Configure GPG
-print_status "Configuring GPG..."
+restart_gpg_agent
 
-
-
-
-# Step 4: Restart GPG Agent
-print_status "Restarting GPG Agent..."
-gpgconf --kill gpg-agent
-gpg-agent --daemon
-
-# Step 5: Test GPG signing
 print_status "Testing GPG signing..."
-echo "test" | gpg --clearsign --default-key "$KEY_ID" > /dev/null 2>&1
-if [ $? -eq 0 ]; then
+if echo "test" | gpg --clearsign --default-key "$KEY_ID" >/dev/null 2>&1; then
     print_status "GPG signing test successful!"
 else
-    print_error "GPG signing test failed. Please check your configuration."
+    print_error "GPG signing test failed. Check pinentry and passphrase."
     exit 1
 fi
 
-
-# Step 7: Add GPG key to macOS Keychain (optional but recommended)
 print_warning "To avoid entering your passphrase repeatedly, you can add it to macOS Keychain:"
 echo ""
 echo "1. Open Keychain Access"
@@ -138,7 +213,6 @@ echo "Or run this command to add it programmatically:"
 echo "  security add-generic-password -a '$KEY_ID' -s 'GPG Passphrase' -w"
 echo ""
 
-# Step 8: Export public key for GitHub
 print_status "Exporting public key for GitHub..."
 echo ""
 echo "Here's your public GPG key to add to GitHub:"
@@ -152,20 +226,17 @@ echo "2. Click 'New GPG key'"
 echo "3. Paste the key above"
 echo ""
 
-# Step 9: Environment setup
 print_status "Setting up environment..."
 
-# Function to add GPG configuration to shell profiles (excluding Fish since it's managed by Nix)
 add_gpg_config() {
     local profile_file="$1"
-    local shell_type="$2"
 
     if [ -f "$profile_file" ]; then
         if ! grep -q "GPG_TTY" "$profile_file"; then
-            echo "" >> "$profile_file"
-            echo "# GPG configuration" >> "$profile_file"
-            echo "export GPG_TTY=\$(tty)" >> "$profile_file"
-            echo "export SSH_AUTH_SOCK=\$(gpgconf --list-dirs agent-ssh-socket)" >> "$profile_file"
+            echo "" >>"$profile_file"
+            echo "# GPG configuration" >>"$profile_file"
+            echo "export GPG_TTY=\$(tty)" >>"$profile_file"
+            echo "export SSH_AUTH_SOCK=\$(gpgconf --list-dirs agent-ssh-socket)" >>"$profile_file"
 
             print_status "Added GPG environment variables to $profile_file"
             return 0
@@ -177,24 +248,20 @@ add_gpg_config() {
     return 1
 }
 
-# Add to shell profiles (excluding Fish since it's managed by Nix)
 CONFIGURED_SHELLS=()
 
-# Check if Fish is being used but managed by Nix
-if command -v fish &> /dev/null; then
+if command -v fish &>/dev/null; then
     print_status "Fish shell detected - GPG configuration should be managed through Nix"
     CONFIGURED_SHELLS+=("Fish (managed by Nix)")
 fi
 
-# Zsh
-if add_gpg_config "$HOME/.zshrc" "zsh"; then
+if add_gpg_config "$HOME/.zshrc"; then
     CONFIGURED_SHELLS+=("Zsh")
 fi
 
-# Bash
-if add_gpg_config "$HOME/.bash_profile" "bash"; then
+if add_gpg_config "$HOME/.bash_profile"; then
     CONFIGURED_SHELLS+=("Bash (.bash_profile)")
-elif add_gpg_config "$HOME/.bashrc" "bash"; then
+elif add_gpg_config "$HOME/.bashrc"; then
     CONFIGURED_SHELLS+=("Bash (.bashrc)")
 fi
 
@@ -207,7 +274,6 @@ else
     print_status "Configured shells: ${CONFIGURED_SHELLS[*]}"
 fi
 
-# Final instructions
 echo ""
 print_status "GPG setup complete! 🎉"
 echo ""
@@ -231,7 +297,7 @@ done
 echo "3. Add your public key to GitHub (shown above)"
 echo "4. Test with a signed commit: git commit -S -m 'Test signed commit'"
 echo ""
-if command -v fish &> /dev/null; then
+if command -v fish &>/dev/null; then
     echo "After Nix rebuild, Fish shell users will have these helper functions:"
     echo "- gpg-restart: Restart the GPG agent"
     echo "- gpg-test: Test GPG signing functionality"
