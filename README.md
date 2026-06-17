@@ -34,11 +34,24 @@ for coding standards.
 Install the [Nix package manager](https://nixos.org/download.html) (multi-user install
 recommended).
 
-Ensure flakes are enabled. Either use `/etc/nix/nix.conf` or `~/.config/nix/nix.conf`:
+Ensure flakes are enabled. **`sudo nix` only reads `/etc/nix/nix.conf`** (root’s home is
+`/var/root`, not your login). `~/.config/nix/nix.conf` is enough for **your**
+`nix build` as a normal user, but the **first nix-darwin switch is usually run with
+`sudo`**, so put flakes in the **system** config too (or pass flags as shown in
+[§7](#7-build-and-activate)):
 
 ```ini
 experimental-features = nix-command flakes
 ```
+
+Typical location (create the directory if needed):
+
+```bash
+sudo mkdir -p /etc/nix
+printf '%s\n' 'experimental-features = nix-command flakes' | sudo tee /etc/nix/nix.conf
+```
+
+You can keep the same line in `~/.config/nix/nix.conf` for day-to-day non-sudo use.
 
 Restart your terminal after installation.
 
@@ -197,18 +210,51 @@ nix build ".#darwinConfigurations.${NIXHOST}.system"
 ```
 
 **`nix build` succeeding does not install nix-darwin.** Until you run the **bootstrap**
-command in the next block, **`darwin-rebuild` does not exist** — `sudo darwin-rebuild`
-will always print `command not found`. That is expected.
+below, **`darwin-rebuild` does not exist** — `sudo darwin-rebuild` will print
+`command not found`. That is expected.
 
-**Bootstrap (first activation on this Mac — do not skip):**
+**Before bootstrap:** ensure **`/etc/nix/nix.conf`** enables flakes (see
+[§2](#2-install-nix)). Without it, `sudo nix run …` fails with
+`experimental Nix feature 'nix-command' is disabled` because root does not use your
+`~/.config/nix/nix.conf`.
+
+**If nix-darwin refuses with “Unexpected files in /etc”**, it will not overwrite unknown
+`/etc/nix/nix.conf`, `/etc/bashrc`, or `/etc/zshrc`. **Rename** them (do not blindly
+`rm` — especially keep a copy of any custom `nix.conf` lines you care about), then run
+bootstrap again:
+
+```bash
+sudo mv /etc/nix/nix.conf /etc/nix/nix.conf.before-nix-darwin
+sudo mv /etc/bashrc /etc/bashrc.before-nix-darwin
+sudo mv /etc/zshrc /etc/zshrc.before-nix-darwin
+```
+
+Then restore flakes for root (nix-darwin will manage this file after activation):
+
+```bash
+sudo mkdir -p /etc/nix
+printf '%s\n' 'experimental-features = nix-command flakes' | sudo tee /etc/nix/nix.conf
+```
+
+**Bootstrap (first activation — run as root):** `darwin-rebuild` may print “activation
+must now be run as root”; run the whole thing under **`sudo`**. Flags belong **right
+after `nix`**, not after `run`:
 
 ```bash
 cd ~/.config/nix
-nix run github:LnL7/nix-darwin/master -- switch --flake ".#${NIXHOST}"
+export NIXHOST="KT-MAC-D32YJC7C9P"
+sudo nix --extra-experimental-features "nix-command flakes" run github:LnL7/nix-darwin/master -- switch --flake ".#${NIXHOST}"
 ```
 
-Use `sudo` if the tool asks for it. When that finishes, open a **new** terminal tab;
-then `darwin-rebuild` should be on your `PATH`.
+If `/etc/nix/nix.conf` already has `experimental-features = nix-command flakes`, you can
+omit the `--extra-experimental-features …` part:
+
+```bash
+sudo nix run github:LnL7/nix-darwin/master -- switch --flake ".#${NIXHOST}"
+```
+
+When that finishes, open a **new** terminal tab; then `darwin-rebuild` should be on your
+`PATH`.
 
 If Nix prints **Git tree … is dirty**, the build can still succeed; it only means you
 have uncommitted changes. To hide the warning: add `warn-dirty = false` to your
@@ -270,9 +316,13 @@ sudo darwin-rebuild switch --flake ".#${NIXHOST}"
 ```
 
 If **`darwin-rebuild: command not found`**, you have not finished the **bootstrap** in
-[§7 Build and activate](#7-build-and-activate) yet — run
-`nix run github:LnL7/nix-darwin/master -- switch --flake ".#${NIXHOST}"` once, then open
-a new terminal.
+[§7 Build and activate](#7-build-and-activate) yet — run the `sudo nix … run … switch`
+command there once, then open a new terminal.
+
+If **`nix-command` / `flakes` disabled** under `sudo`, add them to
+**`/etc/nix/nix.conf`** (see §2 and §7) or use
+`sudo nix --extra-experimental-features "nix-command flakes" run …` (flags **immediately
+after `nix`**, not at the end of the line).
 
 Set `NIXHOST` to the same `machines.nix` key as in [§7](#7-build-and-activate) (or use
 `sudo darwin-rebuild switch --flake .` if that works on your machine). After editing any
