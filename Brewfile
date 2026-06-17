@@ -26,10 +26,12 @@ brew "starship"
 brew "gnupg"
 brew "pinentry-mac"
 
-# --- Libraries for asdf Python / native builds ---
+# --- Libraries for asdf Python / native builds (stdlib: _sqlite3, _bz2, ctypes, etc.) ---
 brew "openssl@3"
 brew "readline"
 brew "sqlite"
+brew "bzip2"
+brew "libffi"
 brew "xz"
 brew "zlib"
 brew "pkgconf"

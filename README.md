@@ -303,19 +303,25 @@ Then open a **new** terminal. Confirm Fish:
 fish --version
 ```
 
-**`gpg-test: command not found`:** that helper is a **Fish function** from this flake
-(`git.nix`). It does not exist in zsh. Run **`fish`** first, or:
+**`gpg-test: command not found`:** `gpg-test` is a **Fish function** defined in
+`modules/git.nix`. It runs a quick **`gpg --clearsign`** against your configured signing
+key. It is deployed **only on machines that have** `git.signingKey` in
+`modules/machines.nix` (the **kraken** work profile). **Personal** machines do not get
+that function — there is nothing wrong with your install.
+
+- On **kraken** Macs: use **Fish** (not zsh), then `gpg-test`, or `fish -c gpg-test`.
+- Elsewhere, test signing manually (use your secret key id from
+  `gpg --list-secret-keys --keyid-format LONG`):
 
 ```bash
-fish -c gpg-test
+echo test | gpg --clearsign --default-key YOUR_KEY_ID >/dev/null && echo "GPG OK"
 ```
 
 **Signed-commit test** must be run inside a **git repository** (not `~`):
 
 ```bash
 cd ~/.config/nix
-fish -c 'gpg-test'
-git commit --allow-empty -m "test signing"
+git commit --allow-empty -S -m "test signing"
 ```
 
 ### 9. Optional: pre-commit hooks
@@ -445,18 +451,26 @@ asdf plugin update python
 
 Per project, run `asdf install` where a `.tool-versions` file exists.
 
-If **`asdf install python`** still fails with **`zlib.h` not found**, point the build at
-Homebrew’s zlib (Apple Silicon paths; Intel uses `/usr/local`):
+If **`asdf install python`** finishes but **`sqlite3` / `_bz2` / `_ctypes` are missing**
+(or the build fails on headers), Homebrew’s libraries were not linked into the build.
+Install the [Brewfile](./Brewfile) libs (**`sqlite`**, **`bzip2`**, **`libffi`**, zlib,
+readline, openssl@3), then **remove the broken install and rebuild** with compiler flags
+(so `python-build` sees headers and `.dylib`s):
 
 ```bash
-export LDFLAGS="-L/opt/homebrew/opt/zlib/lib"
-export CPPFLAGS="-I/opt/homebrew/opt/zlib/include"
-export PKG_CONFIG_PATH="/opt/homebrew/opt/zlib/lib/pkgconfig"
-asdf install python 3.13.11
+brew bundle install
+P="$(brew --prefix)"
+export LDFLAGS="-L${P}/opt/zlib/lib -L${P}/opt/bzip2/lib -L${P}/opt/readline/lib -L${P}/opt/sqlite/lib -L${P}/opt/libffi/lib -L${P}/opt/openssl@3/lib"
+export CPPFLAGS="-I${P}/opt/zlib/include -I${P}/opt/bzip2/include -I${P}/opt/readline/include -I${P}/opt/sqlite/include -I${P}/opt/libffi/include -I${P}/opt/openssl@3/include"
+export PKG_CONFIG_PATH="${P}/opt/sqlite/lib/pkgconfig:${P}/opt/zlib/lib/pkgconfig:${P}/opt/libffi/lib/pkgconfig:${P}/opt/openssl@3/lib/pkgconfig"
+
+asdf uninstall python 3.14.6t
+asdf install python 3.14.6
 ```
 
-Prefer a stable **3.13.x** unless you need **3.14** free-threading; 3.14 builds are
-stricter about deps.
+Use the exact names from `asdf list python` (e.g. `3.14.6` vs `3.14.6t`). Prefer a
+stable **3.13.x** unless you need **3.14** free-threading (`3.14.6t`); older lines are
+easier to build.
 
 **Starship “shadowed” by Nix:** normal if Nix’s `starship` is earlier on `PATH` than
 Homebrew’s — your prompt still uses one Starship. You can comment out `brew "starship"`
