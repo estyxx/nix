@@ -28,15 +28,22 @@ print_error() {
 
 # Check if GPG is installed
 if ! command -v gpg &> /dev/null; then
-    print_error "GPG is not installed. Please install it first:"
-    echo "  brew install gnupg pinentry-mac"
+    print_error "GPG is not installed. Install Homebrew first, then run this single line in zsh/bash:"
+    echo ""
+    echo "    brew install gnupg pinentry-mac"
+    echo ""
+    print_warning "If you see zsh: command not found: import — you pasted something that is not a shell command."
+    echo "  The word import only appears inside gpg --import (see below). Never run import by itself."
+    echo ""
     exit 1
 fi
 
 # Check if pinentry-mac is installed
 if ! command -v pinentry-mac &> /dev/null; then
-    print_error "pinentry-mac is not installed. Please install it first:"
-    echo "  brew install pinentry-mac"
+    print_error "pinentry-mac is not installed. Run:"
+    echo ""
+    echo "    brew install pinentry-mac"
+    echo ""
     exit 1
 fi
 
@@ -50,15 +57,15 @@ if gpg --list-secret-keys --keyid-format LONG | grep -q "$KEY_ID"; then
     print_status "GPG key $KEY_ID already exists in keyring"
 else
     print_warning "GPG key $KEY_ID not found in keyring"
-    echo "Please import your existing key or create a new one:"
+    echo "Add your existing secret key to the keyring, or create a new one:"
     echo ""
-    echo "To import an existing key:"
+    echo "  # Whole command (copy the line starting with gpg):"
     echo "  gpg --import /path/to/your/private-key.asc"
     echo ""
-    echo "To create a new key:"
+    echo "  # Or generate a new key:"
     echo "  gpg --full-generate-key"
     echo ""
-    echo "After importing/creating your key, run this script again."
+    echo "After that, run this script again."
     exit 1
 fi
 
@@ -122,14 +129,14 @@ print_status "Setting up environment..."
 add_gpg_config() {
     local profile_file="$1"
     local shell_type="$2"
-    
+
     if [ -f "$profile_file" ]; then
         if ! grep -q "GPG_TTY" "$profile_file"; then
             echo "" >> "$profile_file"
             echo "# GPG configuration" >> "$profile_file"
             echo "export GPG_TTY=\$(tty)" >> "$profile_file"
             echo "export SSH_AUTH_SOCK=\$(gpgconf --list-dirs agent-ssh-socket)" >> "$profile_file"
-            
+
             print_status "Added GPG environment variables to $profile_file"
             return 0
         else

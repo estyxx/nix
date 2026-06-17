@@ -103,7 +103,7 @@ From the repo root:
 
 ```bash
 ./setup-ssh-key.sh    # creates ~/.ssh/id_ed25519, add .pub to GitHub
-./setup-gpg.sh        # GPG agent + Keychain; import your signing key when prompted
+./setup-gpg.sh        # GPG agent + Keychain; add your signing key with gpg --import (see script output)
 ```
 
 Add the SSH public key at
