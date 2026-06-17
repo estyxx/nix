@@ -283,18 +283,36 @@ First run may take several minutes while Nix downloads packages.
 
 ### 8. Verify
 
-Open a **new** terminal tab:
+Open a **new** terminal tab (or log out and back in so macOS picks up the default
+shell).
+
+**`echo $SHELL` still shows `/bin/zsh`:** nix-darwin sets your login shell in the Nix
+config, but macOS does not always refresh `$SHELL` until you re-login. Either log
+out/in, or set it explicitly (use the path Nix installed; this is typical on Apple
+Silicon):
 
 ```bash
-echo $SHELL          # should end in /fish
-fish --version
-git config user.name
+chsh -s /run/current-system/sw/bin/fish
 ```
 
-On work machines, confirm signed commits:
+Then open a **new** terminal. Confirm Fish:
 
 ```bash
-gpg-test             # Fish function from git.nix
+fish --version
+```
+
+**`gpg-test: command not found`:** that helper is a **Fish function** from this flake
+(`git.nix`). It does not exist in zsh. Run **`fish`** first, or:
+
+```bash
+fish -c gpg-test
+```
+
+**Signed-commit test** must be run inside a **git repository** (not `~`):
+
+```bash
+cd ~/.config/nix
+fish -c 'gpg-test'
 git commit --allow-empty -m "test signing"
 ```
 
@@ -404,13 +422,43 @@ AeroSpace puts Docker Desktop on workspace 9 (`modules/aerospace.toml`).
 brew install asdf direnv starship
 ```
 
-Add asdf to Fish (already in `fish-user.nix` if Homebrew is at `/opt/homebrew`):
+**Xcode Command Line Tools** (headers such as `zlib.h` for source builds): if you have
+not already, run `xcode-select --install` once.
+
+**Libraries often required before `asdf install python`** (Homebrew no longer ships
+`openssl@1.1`; recent `python-build` falls back to building OpenSSL and needs zlib
+headers on disk):
+
+```bash
+brew install openssl@3 readline sqlite xz zlib pkgconf
+asdf plugin update python
+```
+
+Add asdf plugins once:
 
 ```bash
 asdf plugin add python
 asdf plugin add nodejs
-# per project: asdf install && asdf local <tool> <version>
 ```
+
+Per project, install versions from `.tool-versions` (run `asdf install` in that repo).
+
+If **`asdf install python`** still fails with **`zlib.h` not found**, point the build at
+Homebrew’s zlib (Apple Silicon paths shown; Intel uses `/usr/local`):
+
+```bash
+export LDFLAGS="-L/opt/homebrew/opt/zlib/lib"
+export CPPFLAGS="-I/opt/homebrew/opt/zlib/include"
+export PKG_CONFIG_PATH="/opt/homebrew/opt/zlib/lib/pkgconfig"
+asdf install python 3.13.11
+```
+
+Prefer a stable **3.13.x** unless you need **3.14** free-threading; 3.14 builds are
+stricter about deps.
+
+**Starship “shadowed” by Nix:** normal if Nix’s `starship` is earlier on `PATH` than
+Homebrew’s — your prompt still uses one Starship; you can ignore the warning or skip
+`brew install starship` if Nix already provides it.
 
 ### Homebrew — work Macs (Kraken)
 
@@ -418,11 +466,15 @@ CLI tools commonly installed outside Nix:
 
 ```bash
 brew install kraken-cli k9s kubectx kubernetes-cli helm aws-iam-authenticator \
-  memcached libmemcached libxmlsec1 openssl@1.1 sops codeowners \
+  memcached libmemcached libxmlsec1 openssl@3 sops codeowners \
   docker-credential-helper-ecr watchexec uv
 
 brew install --cask 1password-cli claude claude-code gitkraken-cli
 ```
+
+Homebrew removed **`openssl@1.1`**; use **`openssl@3`** unless kraken-core’s
+`inv install-system-deps` still expects something else (follow that output if it
+differs).
 
 Then install kraken system dependencies from the repo (authoritative list):
 
