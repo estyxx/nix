@@ -27,6 +27,7 @@ modules/
     fisher-plugins.nix           # Nix-managed Fish plugins (z, done)
 setup-ssh-key.sh                 # One-time SSH bootstrap
 setup-gpg.sh                     # One-time GPG bootstrap
+Brewfile                         # Homebrew bundle: brew bundle install
 CONVENTIONS.md                   # Coding standards for this repo
 ```
 

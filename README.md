@@ -67,7 +67,9 @@ casks yet):
 Follow the post-install PATH instructions for your shell.
 
 See [Manual setup (not managed by Nix)](#manual-setup-not-managed-by-nix) for fonts, GUI
-apps, Homebrew packages, and Cursor extensions.
+apps, Homebrew packages, and Cursor extensions. After cloning this repo, you can run
+**`brew bundle install`** from `~/.config/nix` to install everything declared in
+[`Brewfile`](./Brewfile).
 
 ### 4. Clone this configuration
 
@@ -393,8 +395,8 @@ Install **Fira Code Two iScript** manually (the italic/ligature variant Cursor p
 #   FiraCodeTwoiScript-Bold.ttf
 #   FiraCodeTwoiScript-Italic.ttf
 
-# Option B: plain Fira Code via Homebrew (fallback only — not Two iScript)
-brew install --cask font-fira-code
+# Option B: plain Fira Code (fallback only — not Two iScript), e.g. via Brewfile cask
+# font-fira-code, or: brew install --cask font-fira-code
 ```
 
 Plain `FiraCode-*.ttf` files in `~/Library/Fonts/` are fallbacks listed after Two
@@ -403,48 +405,48 @@ iScript in `settings-kraken.json`.
 ### Docker
 
 macOS needs **Docker Desktop** for the daemon — the Nix `docker` / `docker-compose`
-packages in `common-packages.nix` are CLI tools only and do not start an engine.
+packages in `common-packages.nix` are CLI tools only and do not start an engine. The
+[`Brewfile`](./Brewfile) includes the **Docker Desktop** cask; or install with
+`brew install --cask docker`, then open Docker.app once.
 
-```bash
-brew install --cask docker
-# open Docker.app once; enable "Start Docker Desktop when you log in" if you want
-```
-
-On kraken work Macs, also install the ECR credential helper (already in the brew list
-below) so `docker pull` from AWS ECR works without manual `aws ecr get-login`.
+On kraken work Macs, the Brewfile also includes **`docker-credential-helper-ecr`** for
+ECR pulls.
 
 Fish aliases `d` / `dc` and `DOCKER_BUILDKIT=1` are set in `modules/fish/fish.nix`.
 AeroSpace puts Docker Desktop on workspace 9 (`modules/aerospace.toml`).
 
-### Homebrew — all machines
+### One-shot Homebrew (`Brewfile`)
+
+Everything listed under manual Homebrew in this guide is consolidated in
+[`Brewfile`](./Brewfile) (GUI casks, asdf/direnv/starship, GPG, Python build libs,
+Kraken CLI stack, work casks).
 
 ```bash
-brew install asdf direnv starship
+cd ~/.config/nix
+brew bundle install
 ```
+
+- **Personal Mac:** open `Brewfile` and comment out the **Kraken / work** `brew` lines
+  and any **casks** you do not want (e.g. work-only tools).
+- **Headless / minimal:** comment out **GUI** `cask` lines you do not need.
+- If **`brew bundle`** fails on a formula (e.g. `kraken-cli` not in your taps), comment
+  that line and install it the way your team documents.
 
 **Xcode Command Line Tools** (headers such as `zlib.h` for source builds): if you have
-not already, run `xcode-select --install` once.
+not already, run `xcode-select --install` once before `asdf install python`.
 
-**Libraries often required before `asdf install python`** (Homebrew no longer ships
-`openssl@1.1`; recent `python-build` falls back to building OpenSSL and needs zlib
-headers on disk):
-
-```bash
-brew install openssl@3 readline sqlite xz zlib pkgconf
-asdf plugin update python
-```
-
-Add asdf plugins once:
+**After `brew bundle install`**, add asdf plugins once (not managed by Homebrew):
 
 ```bash
 asdf plugin add python
 asdf plugin add nodejs
+asdf plugin update python
 ```
 
-Per project, install versions from `.tool-versions` (run `asdf install` in that repo).
+Per project, run `asdf install` where a `.tool-versions` file exists.
 
 If **`asdf install python`** still fails with **`zlib.h` not found**, point the build at
-Homebrew’s zlib (Apple Silicon paths shown; Intel uses `/usr/local`):
+Homebrew’s zlib (Apple Silicon paths; Intel uses `/usr/local`):
 
 ```bash
 export LDFLAGS="-L/opt/homebrew/opt/zlib/lib"
@@ -457,24 +459,8 @@ Prefer a stable **3.13.x** unless you need **3.14** free-threading; 3.14 builds 
 stricter about deps.
 
 **Starship “shadowed” by Nix:** normal if Nix’s `starship` is earlier on `PATH` than
-Homebrew’s — your prompt still uses one Starship; you can ignore the warning or skip
-`brew install starship` if Nix already provides it.
-
-### Homebrew — work Macs (Kraken)
-
-CLI tools commonly installed outside Nix:
-
-```bash
-brew install kraken-cli k9s kubectx kubernetes-cli helm aws-iam-authenticator \
-  memcached libmemcached libxmlsec1 openssl@3 sops codeowners \
-  docker-credential-helper-ecr watchexec uv
-
-brew install --cask 1password-cli claude claude-code gitkraken-cli
-```
-
-Homebrew removed **`openssl@1.1`**; use **`openssl@3`** unless kraken-core’s
-`inv install-system-deps` still expects something else (follow that output if it
-differs).
+Homebrew’s — your prompt still uses one Starship. You can comment out `brew "starship"`
+in the Brewfile if you rely on Nix only.
 
 Then install kraken system dependencies from the repo (authoritative list):
 
@@ -487,8 +473,9 @@ Do **not** re-enable nix-homebrew cleanup — it removes packages invoke install
 
 ### GUI apps
 
-Dock pins in `modules/mac.nix` expect these `.app` installs (Homebrew cask or manual
-download):
+Dock pins in `modules/mac.nix` expect these `.app` installs. Most matching **casks** are
+already in [`Brewfile`](./Brewfile); **Fork** is not in Homebrew core — install from
+[git-fork.com](https://git-fork.com).
 
 | App            | Typical install                                                  |
 | -------------- | ---------------------------------------------------------------- |
@@ -540,6 +527,7 @@ sudo darwin-rebuild switch --flake ".#${NIXHOST}"
 
 ```
 flake.nix                 # Flake entry; one darwinConfiguration per machine
+Brewfile                  # Homebrew: run `brew bundle install` from repo root
 modules/
   machines.nix            # Machine registry
   mac.nix                 # macOS system settings

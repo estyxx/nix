@@ -64,6 +64,7 @@ should not be used.
 | Fish alias (work only)     | `modules/machines/work.nix`                                             |
 | Git / GPG / SSH            | `modules/git.nix`                                                       |
 | New machine                | `modules/machines.nix`                                                  |
+| Homebrew bundle (manual)   | `Brewfile` (run `brew bundle install` from repo root)                   |
 
 ## Markdown
 
