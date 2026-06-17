@@ -68,13 +68,22 @@
     NSGlobalDomain.InitialKeyRepeat = 25;
     NSGlobalDomain.KeyRepeat = 2;
     NSGlobalDomain."com.apple.mouse.tapBehavior" = 1;
-    NSGlobalDomain."com.apple.swipescrolldirection" = false;
+    # true = Natural scrolling (System Settings → Mouse → Natural); false = classic
+    # wheel direction. Flip if this feels wrong for your mouse vs trackpad.
+    NSGlobalDomain."com.apple.swipescrolldirection" = true;
     NSGlobalDomain.NSWindowShouldDragOnGesture = true;
     NSGlobalDomain.NSAutomaticSpellingCorrectionEnabled = false;
     LaunchServices.LSQuarantine = false; # disables "Are you sure?" for new apps
     loginwindow.GuestEnabled = false;
 
     screencapture.location = "~/Pictures/Screenshots";
+
+    # Accessibility → Zoom: use scroll gesture with Ctrl (^) to zoom (see checklist for
+    # other accessibility tweaks that are easier to set in System Settings).
+    universalaccess = {
+      closeViewScrollWheelToggle = true;
+      closeViewZoomFollowsFocus = true;
+    };
 
     finder = {
       # Show hidden files and directories (including those starting with .)
@@ -148,6 +157,7 @@
         "/Applications/Postgres.app"
         "/Applications/1Password.app"
         "/Applications/Slack.app"
+        "/Applications/Docker.app"
         "/Applications/AeroSpace.app"
       ];
     };

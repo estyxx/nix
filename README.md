@@ -69,7 +69,8 @@ Follow the post-install PATH instructions for your shell.
 See [Manual setup (not managed by Nix)](#manual-setup-not-managed-by-nix) for fonts, GUI
 apps, Homebrew packages, and Cursor extensions. After cloning this repo, you can run
 **`brew bundle install`** from `~/.config/nix` to install everything declared in
-[`Brewfile`](./Brewfile).
+[`Brewfile`](./Brewfile). Use **[SETUP-CHECKLIST.md](./SETUP-CHECKLIST.md)** as a
+printable tick list for a new Mac.
 
 ### 4. Clone this configuration
 
@@ -491,17 +492,17 @@ Dock pins in `modules/mac.nix` expect these `.app` installs. Most matching **cas
 already in [`Brewfile`](./Brewfile); **Fork** is not in Homebrew core — install from
 [git-fork.com](https://git-fork.com).
 
-| App            | Typical install                                                  |
-| -------------- | ---------------------------------------------------------------- |
-| Arc            | `brew install --cask arc`                                        |
-| Cursor         | [cursor.com](https://cursor.com) or `brew install --cask cursor` |
-| AeroSpace      | `brew install --cask nikitabobko/tap/aerospace`                  |
-| Warp           | `brew install --cask warp`                                       |
-| Fork           | [git-fork.com](https://git-fork.com)                             |
-| Postgres.app   | `brew install --cask postgres-unofficial`                        |
-| 1Password      | `brew install --cask 1password`                                  |
-| Slack          | `brew install --cask slack`                                      |
-| Docker Desktop | `brew install --cask docker` (see [Docker](#docker) above)       |
+| App            | Typical install                                                    |
+| -------------- | ------------------------------------------------------------------ |
+| Arc            | `brew install --cask arc`                                          |
+| Cursor         | [cursor.com](https://cursor.com) or `brew install --cask cursor`   |
+| AeroSpace      | `brew install --cask nikitabobko/tap/aerospace`                    |
+| Warp           | `brew install --cask warp`                                         |
+| Fork           | [git-fork.com](https://git-fork.com)                               |
+| Postgres.app   | `brew install --cask postgres-unofficial`                          |
+| 1Password      | `brew install --cask 1password`                                    |
+| Slack          | `brew install --cask slack`                                        |
+| Docker Desktop | `brew install --cask docker` — also pinned in the Dock (`mac.nix`) |
 
 ### Cursor extensions (work profile)
 
@@ -542,6 +543,7 @@ sudo darwin-rebuild switch --flake ".#${NIXHOST}"
 ```
 flake.nix                 # Flake entry; one darwinConfiguration per machine
 Brewfile                  # Homebrew: run `brew bundle install` from repo root
+SETUP-CHECKLIST.md        # New Mac checklist (apps, Raycast, accessibility)
 modules/
   machines.nix            # Machine registry
   mac.nix                 # macOS system settings

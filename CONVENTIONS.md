@@ -65,6 +65,7 @@ should not be used.
 | Git / GPG / SSH            | `modules/git.nix`                                                       |
 | New machine                | `modules/machines.nix`                                                  |
 | Homebrew bundle (manual)   | `Brewfile` (run `brew bundle install` from repo root)                   |
+| New Mac checklist          | `SETUP-CHECKLIST.md`                                                    |
 
 ## Markdown
 
