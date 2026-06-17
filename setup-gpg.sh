@@ -26,26 +26,56 @@ print_error() {
     echo -e "${RED}✗${NC} $1"
 }
 
-# Check if GPG is installed
-if ! command -v gpg &> /dev/null; then
-    print_error "GPG is not installed. Install Homebrew first, then run this single line in zsh/bash:"
-    echo ""
-    echo "    brew install gnupg pinentry-mac"
-    echo ""
-    print_warning "If you see zsh: command not found: import — you pasted something that is not a shell command."
-    echo "  The word import only appears inside gpg --import (see below). Never run import by itself."
-    echo ""
-    exit 1
-fi
+# Put Homebrew on PATH when the script is run from a non-interactive shell (e.g. Cursor).
+ensure_homebrew_on_path() {
+    if command -v brew &>/dev/null; then
+        return 0
+    fi
+    local brew_path
+    for brew_path in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+        if [[ -x "$brew_path" ]]; then
+            # shellcheck disable=SC1090
+            eval "$("$brew_path" shellenv)"
+            return 0
+        fi
+    done
+    return 1
+}
 
-# Check if pinentry-mac is installed
-if ! command -v pinentry-mac &> /dev/null; then
-    print_error "pinentry-mac is not installed. Run:"
-    echo ""
-    echo "    brew install pinentry-mac"
-    echo ""
-    exit 1
-fi
+ensure_gpg_packages() {
+    if command -v gpg &>/dev/null && command -v pinentry-mac &>/dev/null; then
+        return 0
+    fi
+
+    if ! ensure_homebrew_on_path; then
+        print_error "Homebrew is not installed (or not on PATH). Install it first, then re-run this script:"
+        echo ""
+        echo "  https://brew.sh"
+        echo ""
+        exit 1
+    fi
+
+    print_warning "Installing gnupg and pinentry-mac via Homebrew (you may be prompted for your password)..."
+    brew install gnupg pinentry-mac
+
+    if ! command -v gpg &>/dev/null; then
+        for gpg_path in /opt/homebrew/bin/gpg /usr/local/bin/gpg; do
+            if [[ -x "$gpg_path" ]]; then
+                export PATH="$(dirname "$gpg_path"):$PATH"
+                break
+            fi
+        done
+    fi
+
+    if ! command -v gpg &>/dev/null || ! command -v pinentry-mac &>/dev/null; then
+        print_error "brew install finished but gpg or pinentry-mac is still not on PATH."
+        echo "  Open a new terminal and run this script again, or run: eval \"\$(brew shellenv)\""
+        exit 1
+    fi
+    print_status "gnupg and pinentry-mac are available"
+}
+
+ensure_gpg_packages
 
 # Create GPG directory if it doesn't exist
 mkdir -p ~/.gnupg

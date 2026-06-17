@@ -103,8 +103,11 @@ From the repo root:
 
 ```bash
 ./setup-ssh-key.sh    # creates ~/.ssh/id_ed25519, add .pub to GitHub
-./setup-gpg.sh        # GPG agent + Keychain; add your signing key with gpg --import (see script output)
+./setup-gpg.sh        # installs gnupg + pinentry-mac via brew if missing, then GPG agent / keyring
 ```
+
+`setup-gpg.sh` needs [Homebrew](https://brew.sh) on PATH; it runs
+`brew install gnupg pinentry-mac` when those tools are not found.
 
 Add the SSH public key at
 [GitHub → Settings → SSH keys](https://github.com/settings/keys).
