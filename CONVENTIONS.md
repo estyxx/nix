@@ -65,7 +65,6 @@ should not be used.
 | Git / GPG / SSH            | `modules/git.nix`                                                       |
 | New machine                | `modules/machines.nix`                                                  |
 | Homebrew bundle (manual)   | `Brewfile` (run `brew bundle install` from repo root)                   |
-| New Mac checklist          | `SETUP-CHECKLIST.md`                                                    |
 
 ## Markdown
 
@@ -79,5 +78,5 @@ should not be used.
 
 ## Secrets
 
-Never commit: private keys, tokens, `.env`, shell history, GPG secret key exports. See
-`CLAUDE.md` for the full list.
+Never commit: private keys, tokens, `.env`, GPG secret key exports. See `CLAUDE.md` for
+the full list.

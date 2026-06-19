@@ -1,4 +1,10 @@
 {
+  "Esters-MacBook-Pro" = {
+    username = "ester.beltrami";
+    system = "aarch64-darwin";
+    profile = "personal";
+  };
+
   "Marcos-Disco-Mac-2" = {
     username = "esterbeltrami";
     system = "aarch64-darwin";

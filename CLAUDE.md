@@ -28,7 +28,6 @@ modules/
 setup-ssh-key.sh                 # One-time SSH bootstrap
 setup-gpg.sh                     # One-time GPG bootstrap
 Brewfile                         # Homebrew bundle: brew bundle install
-SETUP-CHECKLIST.md               # New Mac tick list (apps, Spotlight, accessibility)
 CONVENTIONS.md                   # Coding standards for this repo
 ```
 

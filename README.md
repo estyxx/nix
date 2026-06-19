@@ -2,515 +2,270 @@
 
 Reproducible macOS setup using [Nix flakes](https://nixos.wiki/wiki/Flakes),
 [nix-darwin](https://github.com/LnL7/nix-darwin), and
-[home-manager](https://github.com/nix-community/home-manager). Manages Fish shell, dev
-tools, Git/GPG signing, macOS defaults, and AeroSpace window tiling.
+[home-manager](https://github.com/nix-community/home-manager). Fish shell, dev tools,
+Git/GPG (work), macOS defaults, and AeroSpace tiling.
 
-**Repo:** [github.com/estyxx/nix](https://github.com/estyxx/nix)
-
-## What this configures
-
-- **System:** dev packages (Python, PostgreSQL 17, Terraform, jq, etc.), Fish as default
-  shell, macOS Finder/Dock/keyboard defaults
-- **User:** Fish aliases and functions, Fisher plugins, Starship/fzf, Git with signed
-  commits (work machines), SSH for GitHub
-- **Window manager:** AeroSpace config with workspace rules for browsers, editors, dev
-  tools, and messaging apps
+**Repo:** [github.com/estyxx/nix](https://github.com/estyxx/nix) — clone to
+`~/.config/nix`.
 
 See [CLAUDE.md](./CLAUDE.md) for module layout and [CONVENTIONS.md](./CONVENTIONS.md)
 for coding standards.
 
 ---
 
-## Configure a new Mac (full guide)
+## What this configures
+
+- **System:** dev packages, Fish as default shell, Finder/Dock/keyboard defaults
+  (`modules/mac.nix`)
+- **User:** Fish, Starship, Git (signed commits on work profile), SSH helpers
+- **Window manager:** AeroSpace (`modules/aerospace.toml`)
+
+---
+
+## New Mac setup (follow in order)
 
 ### 1. Prerequisites
 
-- macOS on Apple Silicon (`aarch64-darwin`) or Intel (`x86_64-darwin`)
-- Admin access on the machine
-- Apple ID / iCloud set up (optional, for Keychain)
+Apple Silicon or Intel Mac, admin access, terminal.
 
-### 2. Install Nix
+### 2. Nix + flakes (needed before `sudo nix run …`)
 
-Install the [Nix package manager](https://nixos.org/download.html) (multi-user install
-recommended).
-
-Ensure flakes are enabled. **`sudo nix` only reads `/etc/nix/nix.conf`** (root’s home is
-`/var/root`, not your login). `~/.config/nix/nix.conf` is enough for **your**
-`nix build` as a normal user, but the **first nix-darwin switch is usually run with
-`sudo`**, so put flakes in the **system** config too (or pass flags as shown in
-[§7](#7-build-and-activate)):
-
-```ini
-experimental-features = nix-command flakes
-```
-
-Typical location (create the directory if needed):
+Install [Nix](https://nixos.org/download.html) (multi-user recommended). **Root** only
+reads `/etc/nix/nix.conf` for `sudo nix`, so enable flakes there:
 
 ```bash
 sudo mkdir -p /etc/nix
 printf '%s\n' 'experimental-features = nix-command flakes' | sudo tee /etc/nix/nix.conf
 ```
 
-You can keep the same line in `~/.config/nix/nix.conf` for day-to-day non-sudo use.
+You can mirror the same line in `~/.config/nix/nix.conf` for non-sudo `nix`. Restart the
+terminal after installing Nix.
 
-Restart your terminal after installation.
-
-### 3. Install Homebrew (recommended)
-
-Many GUI apps and some CLI tools are still installed via Homebrew (Nix does not manage
-casks yet):
+### 3. Homebrew (recommended)
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-Follow the post-install PATH instructions for your shell.
+Follow the printed `eval "$(…/brew shellenv)"` instructions.
 
-See [Manual setup (not managed by Nix)](#manual-setup-not-managed-by-nix) for fonts, GUI
-apps, Homebrew packages, and Cursor extensions. After cloning this repo, you can run
-**`brew bundle install`** from `~/.config/nix` to install everything declared in
-[`Brewfile`](./Brewfile). Use **[SETUP-CHECKLIST.md](./SETUP-CHECKLIST.md)** as a
-printable tick list for a new Mac.
-
-### 4. Clone this configuration
+### 4. Clone this repo
 
 ```bash
 git clone https://github.com/estyxx/nix.git ~/.config/nix
 cd ~/.config/nix
 ```
 
-### 5. Register your machine
+### 5. Register this Mac in `modules/machines.nix`
 
-Find your hostname:
+The **quoted key** (left-hand side) must match what you pass to the flake as `.#Name`.
+
+Usually it matches **Bonjour / local hostname**:
 
 ```bash
 scutil --get LocalHostName
-# or: hostname
 ```
 
-Edit `modules/machines.nix` and add an entry. The **left-hand string** in quotes (the
-attribute name) must be the same name you pass to `nix build` / `darwin-rebuild` as
-`#that-name` (example below uses `NIXHOST`). It is often equal to `LocalHostName`, but
-you can pick any unique string as long as it matches the commands you run.
+Add an entry (personal example):
 
 ```nix
 {
-  "Your-Mac-Name" = {
-    username = "your.macos.username";   # must match /Users/your.macos.username
-    system = "aarch64-darwin";            # or x86_64-darwin for Intel Macs
+  "Your-LocalHostName" = {
+    username = "you.shorthost"; # must match whoami / /Users/you.shorthost
+    system = "aarch64-darwin"; # or x86_64-darwin on Intel
     profile = "personal";
   };
 }
 ```
 
-For **work Macs** (Kraken / Octopus Energy), add `profile = "kraken"` and
-`git.signingKey`:
+Work (Kraken) profile: use `profile = "kraken"` and add `git.signingKey = "HEXID";` as
+in existing entries in `machines.nix`.
 
-```nix
-{
-  "KT-MAC-XXXXXXXX" = {
-    username = "first.last";
-    system = "aarch64-darwin";
-    profile = "kraken";
-    git = {
-      signingKey = "YOUR_GPG_KEY_ID";   # public key fingerprint, not the secret key
-    };
-  };
-}
-```
+### 6. SSH and GPG (work / signing — optional on personal)
 
-### 6. Set up SSH and GPG (work Macs)
-
-From the repo root:
+From `~/.config/nix`:
 
 ```bash
-./setup-ssh-key.sh    # creates ~/.ssh/id_ed25519, add .pub to GitHub
-./setup-gpg.sh        # installs gnupg + pinentry-mac if needed, configures agent, imports signing key
+./setup-ssh-key.sh
+./setup-gpg.sh
 ```
 
-#### GPG: you must bring the **secret key** from another machine
+**GPG secret key:** export on a machine that already has the key
+(`gpg --export-secret-keys --armor KEYID > gpg-signing-key.asc`), copy the file to this
+Mac (never commit it — `gpg-signing-key.asc` is gitignored), then run `./setup-gpg.sh`.
+Key id in `machines.nix` is public; the `.asc` file is secret.
 
-Git signing needs your **private** key material on this Mac. Nix cannot invent it. You
-**export once** on a PC that already has the key, **copy the file** out-of-band (never
-commit it), then `setup-gpg.sh` **imports** it here.
-
-**On the Mac (or PC) that already has your signing key**
-
-1. Confirm the key id (must match `git.signingKey` / `machines.nix` for this machine):
-
-   ```bash
-   gpg --list-secret-keys --keyid-format LONG
-   ```
-
-2. Export the **secret** key to a file (example uses **armor** so the file is plain
-   text; you can omit `--armor` for a smaller binary file — both work with
-   `setup-gpg.sh`):
-
-   ```bash
-   gpg --export-secret-keys --armor YOUR_KEY_ID > gpg-signing-key.asc
-   chmod 600 gpg-signing-key.asc
-   ```
-
-   Replace `YOUR_KEY_ID` with the id from step 1 (often the `sec` line looks like
-   `rsa4096/YOUR_KEY_ID`).
-
-3. **Move that file to the new Mac** using something you trust (AirDrop, encrypted USB,
-   `scp` over SSH, a password manager attachment, etc.). Treat it like a password:
-   anyone with the file can impersonate your Git signatures until you rotate the key.
-
-**On the new Mac**
-
-1. Put the file in **one** of these places (then run `./setup-gpg.sh`):
-
-   - **`gpg-signing-key.asc` next to `setup-gpg.sh`** in this repo (recommended), or
-   - **`~/.config/nix/gpg-signing-key.asc`**, or
-   - Pass the path: `./setup-gpg.sh /path/to/gpg-signing-key.asc`, or
-   - `NIX_GPG_IMPORT=/path/to/file.asc ./setup-gpg.sh`
-
-2. **Search order** (first non-empty file wins): CLI argument → `NIX_GPG_IMPORT` → repo
-   `gpg-signing-key.asc` → `~/.config/nix/gpg-signing-key.asc`.
-
-3. Optional: **`NIX_GPG_KEY_ID=<id>`** if the key you imported is not the default
-   expected by this script (work Kraken machines use the id in `machines.nix`).
-
-`setup-gpg.sh` needs [Homebrew](https://brew.sh); it installs `gnupg` and `pinentry-mac`
-when missing and writes `~/.gnupg/gpg-agent.conf`.
-
-#### Security: key **id** vs secret **file**
-
-- The **signing key id** (hex fingerprint fragment in `machines.nix` / Git
-  `user.signingkey`) is **not a secret**. It identifies your **public** key and shows up
-  on signed commits and GitHub anyway.
-- The **`gpg-signing-key.asc`** produced by `--export-secret-keys` **is secret**. It
-  must **never** be committed. This repo **gitignores** `gpg-signing-key.asc`; keep
-  using that exact filename so you do not accidentally track it.
-
-Add the SSH public key at
-[GitHub → Settings → SSH keys](https://github.com/settings/keys).
-
-Test:
+Add SSH public key at [GitHub → SSH keys](https://github.com/settings/keys). Test:
 
 ```bash
 ssh -T git@github.com
-gpg --list-secret-keys
 ```
 
-### 7. Build and activate
+### 7. Build and activate nix-darwin (copy-paste)
 
-Use the **same quoted name** you used as the attribute key in `modules/machines.nix`
-(for example `"KT-MAC-D32YJC7C9P"`). Set it once per shell session (use **your** name,
-not a placeholder):
+Run from **`~/.config/nix`**. This sets **`NIXHOST`** from macOS so you do not paste a
+hostname by hand. It **must** equal the quoted key in `modules/machines.nix` (if not,
+use `export NIXHOST="Exact-Key-From-machines.nix"` instead).
 
 ```bash
-export NIXHOST="KT-MAC-D32YJC7C9P"
 cd ~/.config/nix
-```
-
-Check that the flake evaluates (no `sudo`):
-
-```bash
+export NIXHOST="$(scutil --get LocalHostName)"
+echo "NIXHOST=$NIXHOST  (must match modules/machines.nix)"
 nix build ".#darwinConfigurations.${NIXHOST}.system"
 ```
 
-**`nix build` succeeding does not install nix-darwin.** Until you run the **bootstrap**
-below, **`darwin-rebuild` does not exist** — `sudo darwin-rebuild` will print
-`command not found`. That is expected.
-
-**Before bootstrap:** ensure **`/etc/nix/nix.conf`** enables flakes (see
-[§2](#2-install-nix)). Without it, `sudo nix run …` fails with
-`experimental Nix feature 'nix-command' is disabled` because root does not use your
-`~/.config/nix/nix.conf`.
-
-**If nix-darwin refuses with “Unexpected files in /etc”**, it will not overwrite unknown
-`/etc/nix/nix.conf`, `/etc/bashrc`, or `/etc/zshrc`. **Rename** them (do not blindly
-`rm` — especially keep a copy of any custom `nix.conf` lines you care about), then run
-bootstrap again:
-
-```bash
-sudo mv /etc/nix/nix.conf /etc/nix/nix.conf.before-nix-darwin
-sudo mv /etc/bashrc /etc/bashrc.before-nix-darwin
-sudo mv /etc/zshrc /etc/zshrc.before-nix-darwin
-```
-
-Then restore flakes for root (nix-darwin will manage this file after activation):
-
-```bash
-sudo mkdir -p /etc/nix
-printf '%s\n' 'experimental-features = nix-command flakes' | sudo tee /etc/nix/nix.conf
-```
-
-**Bootstrap (first activation — run as root):** `darwin-rebuild` may print “activation
-must now be run as root”; run the whole thing under **`sudo`**. Flags belong **right
-after `nix`**, not after `run`:
-
-```bash
-cd ~/.config/nix
-export NIXHOST="KT-MAC-D32YJC7C9P"
-sudo nix --extra-experimental-features "nix-command flakes" run github:LnL7/nix-darwin/master -- switch --flake ".#${NIXHOST}"
-```
-
-If `/etc/nix/nix.conf` already has `experimental-features = nix-command flakes`, you can
-omit the `--extra-experimental-features …` part:
+**First install** (until `darwin-rebuild` exists — run once):
 
 ```bash
 sudo nix run github:LnL7/nix-darwin/master -- switch --flake ".#${NIXHOST}"
 ```
 
-When that finishes, open a **new** terminal tab; then `darwin-rebuild` should be on your
-`PATH`.
+If `sudo nix` complains flakes are disabled, use:
 
-If Nix prints **Git tree … is dirty**, the build can still succeed; it only means you
-have uncommitted changes. To hide the warning: add `warn-dirty = false` to your
-[`nix.conf`](https://nixos.org/manual/nix/stable/command-ref/conf-file.html), or pass
-`--option warn-dirty false` to `nix build` / `nix run` for a one-off.
+```bash
+sudo nix --extra-experimental-features "nix-command flakes" run github:LnL7/nix-darwin/master -- switch --flake ".#${NIXHOST}"
+```
 
-**After bootstrap** (every later config change):
+**Later changes:**
 
 ```bash
 cd ~/.config/nix
 sudo darwin-rebuild switch --flake ".#${NIXHOST}"
 ```
 
-If `sudo darwin-rebuild switch --flake .` works on your machine without `#hostname`, you
-can use that instead; with **multiple** machines in `machines.nix`, prefer an explicit
-`.#${NIXHOST}`.
+**`nix build` fails “attribute … does not exist”:** add or fix the host key in
+`machines.nix`, or set `NIXHOST` manually to that exact string.
 
-**If `nix build` says the attribute does not exist**, the name in the command does not
-match the left-hand string in `machines.nix` (typo, or you never added this Mac).
+**`echo NIXHOST` prints `NIXHOST`:** use `echo "$NIXHOST"` (needs `$`).
 
-**If `zsh: command not found: #`**, you pasted a “comment” line that is not a real shell
-comment (often a fancy Unicode `#` from a PDF or web page). Re-type `#` manually or copy
-only the fenced **bash** blocks above, one at a time.
+**“Unexpected files in /etc”:** rename existing `/etc/nix/nix.conf`, `/etc/bashrc`,
+`/etc/zshrc` as in older docs, re-add flakes to `/etc/nix/nix.conf`, retry bootstrap.
 
-First run may take several minutes while Nix downloads packages.
+**`Could not write domain com.apple.universalaccess`:** use a `mac.nix` revision without
+`system.defaults.universalaccess`; set Zoom in **System Settings → Accessibility**.
 
-### 8. Verify
+Open a **new terminal tab** after the first switch.
 
-Open a **new** terminal tab (or log out and back in so macOS picks up the default
-shell).
-
-**`echo $SHELL` still shows `/bin/zsh`:** nix-darwin sets your login shell in the Nix
-config, but macOS does not always refresh `$SHELL` until you re-login. Either log
-out/in, or set it explicitly (use the path Nix installed; this is typical on Apple
-Silicon):
+### 8. Fish as login shell
 
 ```bash
 chsh -s /run/current-system/sw/bin/fish
 ```
 
-Then open a **new** terminal. Confirm Fish:
+Log out and back in (or at least open a new login terminal), then:
 
 ```bash
 fish --version
 ```
 
-**`gpg-test: command not found`:** `gpg-test` is a **Fish function** defined in
-`modules/git.nix`. It runs a quick **`gpg --clearsign`** against your configured signing
-key. It is deployed **only on machines that have** `git.signingKey` in
-`modules/machines.nix` (the **kraken** work profile). **Personal** machines do not get
-that function — there is nothing wrong with your install.
+`gpg-test` exists only on **kraken** profile machines (`git.signingKey` in
+`machines.nix`). Else test with `echo test | gpg --clearsign …`.
 
-- On **kraken** Macs: use **Fish** (not zsh), then `gpg-test`, or `fish -c gpg-test`.
-- Elsewhere, test signing manually (use your secret key id from
-  `gpg --list-secret-keys --keyid-format LONG`):
-
-```bash
-echo test | gpg --clearsign --default-key YOUR_KEY_ID >/dev/null && echo "GPG OK"
-```
-
-**Signed-commit test** must be run inside a **git repository** (not `~`):
-
-```bash
-cd ~/.config/nix
-git commit --allow-empty -S -m "test signing"
-```
-
-### 9. Optional: pre-commit hooks
-
-```bash
-cd ~/.config/nix
-pre-commit install
-```
-
----
-
-## Day-to-day usage
-
-```bash
-cd ~/.config/nix
-
-sudo darwin-rebuild switch --flake ".#${NIXHOST}"
-```
-
-If **`darwin-rebuild: command not found`**, you have not finished the **bootstrap** in
-[§7 Build and activate](#7-build-and-activate) yet — run the `sudo nix … run … switch`
-command there once, then open a new terminal.
-
-If **`nix-command` / `flakes` disabled** under `sudo`, add them to
-**`/etc/nix/nix.conf`** (see §2 and §7) or use
-`sudo nix --extra-experimental-features "nix-command flakes" run …` (flags **immediately
-after `nix`**, not at the end of the line).
-
-Set `NIXHOST` to the same `machines.nix` key as in [§7](#7-build-and-activate) (or use
-`sudo darwin-rebuild switch --flake .` if that works on your machine). After editing any
-`.nix` / `.toml` / `.fish` file in this repo, run the command above.
-
-```bash
-nix-edit             # Fish alias → opens ~/.config/nix (after Fish is default shell)
-```
-
-### What Nix manages vs what you manage
-
-- **Nix (this repo):** Fish shell, Git/GPG, Starship, AeroSpace, macOS defaults, dev CLI
-  tools
-- **asdf (Homebrew):** Python, Node, Ruby, etc. — use `.tool-versions` per project
-- **Homebrew (manual):** GUI apps + kraken `inv install-system-deps` packages
-
-Do **not** edit `~/.config/fish/config.fish` or other home-manager files directly — they
-are read-only symlinks into the Nix store. Edit sources here, then rebuild. No sudo
-needed for editing (only for `darwin-rebuild switch`).
-
-See [CONVENTIONS.md](./CONVENTIONS.md) for the full split.
-
----
-
-## Manual setup (not managed by Nix)
-
-Homebrew, fonts, GUI apps, and kraken system deps are **intentionally outside** this
-flake. Nix-homebrew was removed because `cleanup = "zap"` conflicted with
-`inv install-system-deps`.
-
-### Fonts
-
-Nix installs nerd-font variants to `/Library/Fonts/Nix Fonts/` (see `modules/mac.nix`):
-
-- Fira Code Nerd Font, Fira Mono Nerd Font, Hack Nerd Font Mono, JetBrains Mono Nerd
-  Font
-
-Cursor settings use:
-
-| Setting                            | Font                  | Source                             |
-| ---------------------------------- | --------------------- | ---------------------------------- |
-| `terminal.integrated.fontFamily`   | Hack Nerd Font Mono   | Nix (automatic after rebuild)      |
-| `editor.fontFamily` (first choice) | Fira Code Two iScript | **Manual** — not in Nix nerd-fonts |
-
-Install **Fira Code Two iScript** manually (the italic/ligature variant Cursor prefers):
-
-```bash
-# Option A: copy from an existing Mac (files in ~/Library/Fonts/)
-#   FiraCodeTwoiScript-Regular.ttf
-#   FiraCodeTwoiScript-Bold.ttf
-#   FiraCodeTwoiScript-Italic.ttf
-
-# Option B: plain Fira Code (fallback only — not Two iScript), e.g. via Brewfile cask
-# font-fira-code, or: brew install --cask font-fira-code
-```
-
-Plain `FiraCode-*.ttf` files in `~/Library/Fonts/` are fallbacks listed after Two
-iScript in `settings-kraken.json`.
-
-### Docker
-
-macOS needs **Docker Desktop** for the daemon — the Nix `docker` / `docker-compose`
-packages in `common-packages.nix` are CLI tools only and do not start an engine. The
-[`Brewfile`](./Brewfile) includes the **Docker Desktop** cask; or install with
-`brew install --cask docker`, then open Docker.app once.
-
-On kraken work Macs, the Brewfile also includes **`docker-credential-helper-ecr`** for
-ECR pulls.
-
-Fish aliases `d` / `dc` and `DOCKER_BUILDKIT=1` are set in `modules/fish/fish.nix`.
-AeroSpace puts Docker Desktop on workspace 9 (`modules/aerospace.toml`).
-
-### One-shot Homebrew (`Brewfile`)
-
-Everything listed under manual Homebrew in this guide is consolidated in
-[`Brewfile`](./Brewfile) (GUI casks, asdf/direnv/starship, GPG, Python build libs,
-Kraken CLI stack, work casks).
+### 9. Homebrew bundle, runtimes, Kraken deps
 
 ```bash
 cd ~/.config/nix
 brew bundle install
-```
-
-- **Personal Mac:** open `Brewfile` and comment out the **Kraken / work** `brew` lines
-  and any **casks** you do not want (e.g. work-only tools).
-- **Headless / minimal:** comment out **GUI** `cask` lines you do not need.
-- If **`brew bundle`** fails on a formula (e.g. `kraken-cli` not in your taps), comment
-  that line and install it the way your team documents.
-
-**Xcode Command Line Tools** (headers such as `zlib.h` for source builds): if you have
-not already, run `xcode-select --install` once before `asdf install python`.
-
-**After `brew bundle install`**, add asdf plugins once (not managed by Homebrew):
-
-```bash
+xcode-select --install   # if you have not (headers for Python builds)
 asdf plugin add python
 asdf plugin add nodejs
 asdf plugin update python
 ```
 
-Per project, run `asdf install` where a `.tool-versions` file exists.
+Personal Mac: edit `Brewfile` and comment Kraken-only lines you do not need. Python
+build issues: see [One-shot Homebrew](#one-shot-homebrew-brewfile) below.
 
-If **`asdf install python`** finishes but **`sqlite3` / `_bz2` / `_ctypes` are missing**
-(or the build fails on headers), Homebrew’s libraries were not linked into the build.
-Install the [Brewfile](./Brewfile) libs (**`sqlite`**, **`bzip2`**, **`libffi`**, zlib,
-readline, openssl@3), then **remove the broken install and rebuild** with compiler flags
-(so `python-build` sees headers and `.dylib`s):
-
-```bash
-brew bundle install
-P="$(brew --prefix)"
-export LDFLAGS="-L${P}/opt/zlib/lib -L${P}/opt/bzip2/lib -L${P}/opt/readline/lib -L${P}/opt/sqlite/lib -L${P}/opt/libffi/lib -L${P}/opt/openssl@3/lib"
-export CPPFLAGS="-I${P}/opt/zlib/include -I${P}/opt/bzip2/include -I${P}/opt/readline/include -I${P}/opt/sqlite/include -I${P}/opt/libffi/include -I${P}/opt/openssl@3/include"
-export PKG_CONFIG_PATH="${P}/opt/sqlite/lib/pkgconfig:${P}/opt/zlib/lib/pkgconfig:${P}/opt/libffi/lib/pkgconfig:${P}/opt/openssl@3/lib/pkgconfig"
-
-asdf uninstall python 3.14.6t
-asdf install python 3.14.6
-```
-
-Use the exact names from `asdf list python` (e.g. `3.14.6` vs `3.14.6t`). Prefer a
-stable **3.13.x** unless you need **3.14** free-threading (`3.14.6t`); older lines are
-easier to build.
-
-**Starship “shadowed” by Nix:** normal if Nix’s `starship` is earlier on `PATH` than
-Homebrew’s — your prompt still uses one Starship. You can comment out `brew "starship"`
-in the Brewfile if you rely on Nix only.
-
-Then install kraken system dependencies from the repo (authoritative list):
+Work machine with kraken-core:
 
 ```bash
 cd ~/Projects/kraken-core
 inv install-system-deps
 ```
 
-Do **not** re-enable nix-homebrew cleanup — it removes packages invoke installed.
+---
 
-### GUI apps
+## After install: System Settings and apps
 
-Dock pins in `modules/mac.nix` expect these `.app` installs. Most matching **casks** are
-already in [`Brewfile`](./Brewfile); **Fork** is not in Homebrew core — install from
-[git-fork.com](https://git-fork.com).
+Do these once the system has switched; they are not fully declarative in this flake.
 
-| App            | Typical install                                                    |
-| -------------- | ------------------------------------------------------------------ |
-| Arc            | `brew install --cask arc`                                          |
-| Cursor         | [cursor.com](https://cursor.com) or `brew install --cask cursor`   |
-| AeroSpace      | `brew install --cask nikitabobko/tap/aerospace`                    |
-| Warp           | `brew install --cask warp`                                         |
-| Fork           | [git-fork.com](https://git-fork.com)                               |
-| Postgres.app   | `brew install --cask postgres-unofficial`                          |
-| 1Password      | `brew install --cask 1password`                                    |
-| Slack          | `brew install --cask slack`                                        |
-| Docker Desktop | `brew install --cask docker` — also pinned in the Dock (`mac.nix`) |
+- **Accessibility → Zoom:** enable **Use scroll gesture with modifier keys to zoom**
+  (Control + scroll). macOS often blocks `defaults write com.apple.universalaccess`, so
+  this is not set from Nix here.
+- **Raycast vs Spotlight:** set Raycast hotkey (e.g. Cmd+Space), then **Keyboard →
+  Keyboard Shortcuts → Spotlight** so Spotlight does not steal the same shortcut.
+- **Scroll direction:** classic vs natural is set in Nix
+  (`NSGlobalDomain."com.apple.swipescrolldirection"` in `modules/mac.nix`); flip there
+  if you prefer Natural.
+- **Terminal / Cursor — jump by word:** Mac **Alt** is **Option**. Cursor: Option+arrows
+  usually move by word. Terminal.app: **Use Option as Meta key** under the profile’s
+  Keyboard settings.
+- **Fish history on a new Mac:** copy `fish_history` from the old machine into
+  `~/.local/share/fish/fish_history` (not tracked by this repo).
 
-### Cursor extensions (work profile)
+**GUI installs** (Dock pins expect these apps — most are in `Brewfile`):
 
-User settings live in Nix (`modules/cursor/settings-kraken.json`). Extension
-recommendations are listed in `modules/cursor/extensions-kraken.json` (mirrors
-`kraken-core/my.code-workspace`).
+| App            | Install                                                                        |
+| -------------- | ------------------------------------------------------------------------------ |
+| Arc            | `brew install --cask arc`                                                      |
+| Cursor         | [cursor.com](https://cursor.com) or `brew install --cask cursor`               |
+| Warp           | `brew install --cask warp` (also via Nix)                                      |
+| Fork           | [git-fork.com](https://git-fork.com) (not in core Homebrew)                    |
+| Postgres.app   | `brew install --cask postgres-unofficial`                                      |
+| 1Password      | `brew install --cask 1password`                                                |
+| Slack          | `brew install --cask slack`                                                    |
+| Docker Desktop | `brew install --cask docker` — open Docker.app once                            |
+| AeroSpace      | `brew install --cask nikitabobko/tap/aerospace`                                |
+| Raycast        | Rebuild Nix (includes `raycast`) or `brew install --cask raycast` — one source |
 
-Install once on a new work Mac:
+Optional: `cd ~/.config/nix && pre-commit install`.
+
+---
+
+## Manual setup detail
+
+Nix does not manage Homebrew casks, most GUI apps, or kraken’s invoke-installed brew
+packages.
+
+### Fonts
+
+Nix installs nerd-fonts under `/Library/Fonts/Nix Fonts/`. **Fira Code Two iScript**
+(Cursor’s preferred editor font) is not in that set — copy `FiraCodeTwoiScript-*.ttf`
+into `~/Library/Fonts/` from another machine, or use Brewfile `font-fira-code` as a
+fallback.
+
+### Docker
+
+Install **Docker Desktop** (`brew install --cask docker`); Nix supplies CLI tools only.
+
+### One-shot Homebrew (`Brewfile`)
+
+```bash
+cd ~/.config/nix
+brew bundle install
+```
+
+Comment out Kraken or GUI lines you do not need.
+
+If **`asdf install python`** finishes but stdlib pieces are missing (`sqlite3`, `_bz2`,
+`_ctypes`, etc.), install Brewfile libs, then **rebuild Python** with compiler flags so
+`python-build` sees Homebrew headers and libraries:
+
+```bash
+cd ~/.config/nix
+brew bundle install
+P="$(brew --prefix)"
+export LDFLAGS="-L${P}/opt/zlib/lib -L${P}/opt/bzip2/lib -L${P}/opt/readline/lib -L${P}/opt/sqlite/lib -L${P}/opt/libffi/lib -L${P}/opt/openssl@3/lib"
+export CPPFLAGS="-I${P}/opt/zlib/include -I${P}/opt/bzip2/include -I${P}/opt/readline/include -I${P}/opt/sqlite/include -I${P}/opt/libffi/include -I${P}/opt/openssl@3/include"
+export PKG_CONFIG_PATH="${P}/opt/sqlite/lib/pkgconfig:${P}/opt/zlib/lib/pkgconfig:${P}/opt/libffi/lib/pkgconfig:${P}/opt/openssl@3/lib/pkgconfig"
+
+asdf uninstall python 3.14.6t   # use exact name from: asdf list python
+asdf install python 3.14.6t
+```
+
+Use the exact version strings from `asdf list python` (for example `3.13.x` vs
+`3.14.6t`). Prefer a stable **3.13.x** unless you need free-threading 3.14.
+
+### Cursor extensions (work)
 
 ```bash
 for ext in charliermarsh.ruff ms-python.python ms-python.debugpy \
@@ -519,54 +274,52 @@ for ext in charliermarsh.ruff ms-python.python ms-python.debugpy \
 done
 ```
 
-**Keep in `my.code-workspace` (project-specific, not user config):**
+Workspace-specific settings stay in `kraken-core`’s `my.code-workspace`.
 
-- Python analysis paths (`src/`, migrations excludes), pytest args, `cursorpyright`
-  paths
-- Django Fluent locale paths, `mypy.dmypyExecutable`, `search.exclude`
-- Launch configs (Support Site / API Site debug), invoke tasks, `window.title` with
-  branch
-
-Opening `kraken-core` merges workspace settings on top of user settings.
-
-### Updating dependencies
+### Updating flakes
 
 ```bash
+cd ~/.config/nix
 nix flake update
 sudo darwin-rebuild switch --flake ".#${NIXHOST}"
 ```
 
 ---
 
-## Project structure
+## Day-to-day
 
+```bash
+cd ~/.config/nix
+export NIXHOST="$(scutil --get LocalHostName)"   # or your fixed machines.nix key
+sudo darwin-rebuild switch --flake ".#${NIXHOST}"
 ```
-flake.nix                 # Flake entry; one darwinConfiguration per machine
-Brewfile                  # Homebrew: run `brew bundle install` from repo root
-SETUP-CHECKLIST.md        # New Mac checklist (apps, Raycast, accessibility)
-modules/
-  machines.nix            # Machine registry
-  mac.nix                 # macOS system settings
-  common-packages.nix     # Shared packages
-  git.nix                 # Git, GPG, SSH
-  fish/                   # Fish shell, functions, AeroSpace
-setup-ssh-key.sh          # SSH bootstrap
-setup-gpg.sh              # GPG bootstrap
-```
+
+Do **not** edit `~/.config/fish/config.fish` directly — it is managed by Nix. Change
+sources under `modules/` and rebuild.
+
+**What runs where:** Nix = shell, dotfiles, macOS defaults, CLI; **asdf** = Python/Node
+per `.tool-versions`; **Homebrew** = casks and kraken `inv install-system-deps`
+packages.
 
 ---
 
-## Security
+## Optional: `defaults read` and `mac.nix`
 
-**Do not commit:**
+nix-darwin applies **typed options** in `system.defaults.*` by running `defaults write`
+for known domains (Finder, Dock, `-g` / NSGlobalDomain, etc.). That is **not** the same
+as dumping an entire plist:
 
-- Private keys, API tokens, passwords, `.env` files
-- Shell history (`modules/fish/fish_history` is gitignored)
-- GPG private key exports
+- `defaults read com.apple.finder` prints **hundreds** of keys (window positions, column
+  widths, iCloud state). You do **not** paste that blob into Nix.
+- To align Nix with this Mac, read **single keys**, e.g.
+  `defaults read -g com.apple.swipescrolldirection`, then set the matching option in
+  `modules/mac.nix` **if** nix-darwin defines it.
+- Browse available options under
+  [nix-darwin `modules/system/defaults/`](https://github.com/LnL7/nix-darwin/tree/master/modules/system/defaults).
+  Anything not modeled there can go in `system.defaults.CustomUserPreferences` as
+  `"{domain}" = { Key = value; };` when `defaults write` is allowed for that domain.
 
-Use `local-config.nix` (gitignored) for machine-specific secrets or overrides.
-
-Pre-commit hooks include private-key detection.
+---
 
 ---
 

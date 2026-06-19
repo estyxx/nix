@@ -68,9 +68,9 @@
     NSGlobalDomain.InitialKeyRepeat = 25;
     NSGlobalDomain.KeyRepeat = 2;
     NSGlobalDomain."com.apple.mouse.tapBehavior" = 1;
-    # true = Natural scrolling (System Settings → Mouse → Natural); false = classic
-    # wheel direction. Flip if this feels wrong for your mouse vs trackpad.
-    NSGlobalDomain."com.apple.swipescrolldirection" = true;
+    # false = classic / non-natural: scroll up moves content up (traditional wheel).
+    # true = Natural (System Settings → Mouse → Natural); flip if you prefer that.
+    NSGlobalDomain."com.apple.swipescrolldirection" = false;
     NSGlobalDomain.NSWindowShouldDragOnGesture = true;
     NSGlobalDomain.NSAutomaticSpellingCorrectionEnabled = false;
     LaunchServices.LSQuarantine = false; # disables "Are you sure?" for new apps
@@ -78,12 +78,10 @@
 
     screencapture.location = "~/Pictures/Screenshots";
 
-    # Accessibility → Zoom: use scroll gesture with Ctrl (^) to zoom (see checklist for
-    # other accessibility tweaks that are easier to set in System Settings).
-    universalaccess = {
-      closeViewScrollWheelToggle = true;
-      closeViewZoomFollowsFocus = true;
-    };
+    # Do NOT set system.defaults.universalaccess here: macOS often rejects
+    # `defaults write com.apple.universalaccess …` during darwin-rebuild (even as root),
+    # which aborts activation with "Could not write domain com.apple.universalaccess".
+    # Enable Accessibility → Zoom → scroll gesture with modifier keys in System Settings.
 
     finder = {
       # Show hidden files and directories (including those starting with .)
@@ -109,6 +107,20 @@
 
       # Show warning before changing file extensions
       FXEnableExtensionChangeWarning = false;
+    };
+
+    dock = {
+      persistent-apps = [
+        "/Applications/Arc.app"
+        "/Applications/Cursor.app"
+        "/Applications/Warp.app"
+        "/Applications/Fork.app"
+        "/Applications/Postgres.app"
+        "/Applications/1Password.app"
+        "/Applications/Slack.app"
+        "/Applications/Docker.app"
+        "/Applications/AeroSpace.app"
+      ];
     };
   };
 
@@ -146,20 +158,6 @@
       minimize-to-application = true;
       mineffect = "scale";
       enable-window-tool = false;
-    };
-
-    system.defaults.dock = {
-      persistent-apps = [
-        "/Applications/Arc.app"
-        "/Applications/Cursor.app"
-        "/Applications/Warp.app"
-        "/Applications/Fork.app"
-        "/Applications/Postgres.app"
-        "/Applications/1Password.app"
-        "/Applications/Slack.app"
-        "/Applications/Docker.app"
-        "/Applications/AeroSpace.app"
-      ];
     };
 
     "com.apple.ActivityMonitor" = {
