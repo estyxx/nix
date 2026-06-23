@@ -22,7 +22,12 @@
 
       function __auto_activate_venv --on-variable PWD
         if set -q VIRTUAL_ENV
-          deactivate
+          if functions -q deactivate
+            deactivate
+          else
+            # Nested fish or inherited env without activate.fish functions loaded.
+            set -e VIRTUAL_ENV
+          end
         end
         if test -f .venv/bin/activate.fish
           source .venv/bin/activate.fish

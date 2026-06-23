@@ -15,8 +15,17 @@
     set -gx OMF_PATH ${pkgs.oh-my-fish}/share/oh-my-fish
     set -gx OMF_CONFIG $HOME/.config/omf
 
+    if test -d $OMF_PATH/bin
+      fish_add_path $OMF_PATH/bin
+    end
+
     if test -f $OMF_PATH/init.fish
       source $OMF_PATH/init.fish
+    end
+
+    # Ensure `omf` / `omf reload` work even if session PATH omits OMF_PATH/bin.
+    function omf --description 'Oh My Fish package manager'
+      $OMF_PATH/bin/omf $argv
     end
   '';
 }
