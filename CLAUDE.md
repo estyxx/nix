@@ -24,7 +24,8 @@ modules/
     fish-user.nix                # Shared Fish aliases and shell init
     fish-functions.nix           # Deploys ./fish-functions/*.fish (kraken only)
     fish-functions/              # Source of truth for Fish functions
-    fisher-plugins.nix           # Nix-managed Fish plugins (z, done)
+    fish-plugins.nix             # Fish plugins: z, done, fzf-fish, forgit, sponge, …
+    omf.nix                      # Oh My Fish (nixpkgs); user state in ~/.config/omf
 setup-ssh-key.sh                 # One-time SSH bootstrap
 setup-gpg.sh                     # One-time GPG bootstrap
 Brewfile                         # Homebrew bundle: brew bundle install
@@ -89,8 +90,9 @@ After editing `.nix` files: `nix fmt` then `darwin-rebuild switch --flake .`.
 
 - **flake.nix** maps `machines.nix` entries to `darwinConfiguration` via
   `mkDarwinSystem`.
-- **home-manager** imports: `fishUser`, `fishFunctions`, `fisherPlugins`, `aerospace`,
-  `git`, plus profile module.
+- **home-manager** imports: `fishUser`, `fishFunctions`, `fishPlugins`, `fishOmf`,
+  `fishCleanup`, `direnv`, `aerospace`, `starship`, `cursor`, `git`, plus profile
+  module.
 - `machineConfig` is passed via `_module.args` for username/profile branching.
 - **Fish functions** are deployed via `home.file` in `fish-functions.nix`, not inline in
   `fish-user.nix`.

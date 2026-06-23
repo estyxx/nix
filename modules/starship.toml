@@ -1,5 +1,9 @@
 palette = "ester"
 
+# Large repos (e.g. kraken-core): avoid slow directory scans; warnings hidden via STARSHIP_LOG=error.
+scan_timeout = 10000
+command_timeout = 10000
+
 format = """\
 [ 󰀵 ](bg:mint fg:#090c0c)\
 [](fg:mint bg:blue)\

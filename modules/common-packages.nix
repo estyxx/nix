@@ -66,7 +66,8 @@
     fd # Fast and user-friendly alternative to `find`
     ffmpeg # Swiss army knife for video/audio processing
     figurine # ASCII art text generator
-    fzf # Fuzzy finder
+    fzf # Fuzzy finder (CLI + used by fish `fzf-fish` / forgit plugins)
+    terminal-notifier # macOS banners for fish `done` (see franciscolourenco/done)
     gh # Official GitHub CLI
     git-crypt # Encrypt sensitive files in Git repos
     gnused # GNU version of sed (more features than BSD sed)

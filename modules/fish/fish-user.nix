@@ -12,9 +12,8 @@
     interactiveShellInit = ''
       set -g fish_greeting "Welcome Ester to your Fish shell!"
 
-      if command -v fzf >/dev/null 2>&1
-        fzf --fish | source
-      end
+      # fzf: key bindings and completions come from the `fzf-fish` home-manager plugin
+      # (`fish-plugins.nix`); the `fzf` binary is on PATH via Nix.
 
       # asdf (Homebrew) — primary version manager for language runtimes
       if test -f /opt/homebrew/opt/asdf/libexec/asdf.fish
@@ -36,6 +35,7 @@
       end
 
       if command -v starship >/dev/null
+        set -gx STARSHIP_LOG error
         starship init fish | source
       end
     '';
@@ -69,6 +69,7 @@
 
       omh = "omf";
       fr = "omf reload";
+
       dlf = "djlint --reformat  --profile django --format-css --format-js  --preserve-blank-lines";
     };
   };

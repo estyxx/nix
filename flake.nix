@@ -34,7 +34,8 @@
         git = import ./modules/git.nix;
         mac = import ./modules/mac.nix;
         commonPackages = import ./modules/common-packages.nix;
-        fisherPlugins = import ./modules/fish/fisher-plugins.nix;
+        fishPlugins = import ./modules/fish/fish-plugins.nix;
+        fishOmf = import ./modules/fish/omf.nix;
         fishCleanup = import ./modules/fish-cleanup.nix;
         direnv = import ./modules/direnv.nix;
         aerospace = import ./modules/aerospace.nix;
@@ -90,7 +91,8 @@
                     [
                       myModules.fishUser
                       myModules.fishFunctions
-                      myModules.fisherPlugins
+                      myModules.fishPlugins
+                      myModules.fishOmf
                       myModules.fishCleanup
                       myModules.direnv
                       myModules.aerospace

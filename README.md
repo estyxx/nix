@@ -17,7 +17,9 @@ for coding standards.
 
 - **System:** dev packages, Fish as default shell, Finder/Dock/keyboard defaults
   (`modules/mac.nix`)
-- **User:** Fish, Starship, Git (signed commits on work profile), SSH helpers
+- **User:** Fish + declarative plugins (`modules/fish/fish-plugins.nix`: done, fzf-fish,
+  forgit, sponge, …), optional Oh My Fish (`modules/fish/omf.nix`), Starship, Git
+  (signed commits on work profile), SSH helpers
 - **Window manager:** AeroSpace (`modules/aerospace.toml`)
 
 ---
@@ -105,7 +107,8 @@ ssh -T git@github.com
 
 Run from **`~/.config/nix`**. This sets **`NIXHOST`** from macOS so you do not paste a
 hostname by hand. It **must** equal the quoted key in `modules/machines.nix` (if not,
-use `export NIXHOST="Exact-Key-From-machines.nix"` instead).
+set it manually: **`export NIXHOST="Exact-Key"`** in bash/zsh, or
+**`set -gx NIXHOST Exact-Key`** in Fish).
 
 ```bash
 cd ~/.config/nix
@@ -114,16 +117,37 @@ echo "NIXHOST=$NIXHOST  (must match modules/machines.nix)"
 nix build ".#darwinConfigurations.${NIXHOST}.system"
 ```
 
+**Fish:**
+
+```fish
+cd ~/.config/nix
+set -gx NIXHOST (scutil --get LocalHostName)
+echo "NIXHOST=$NIXHOST  (must match modules/machines.nix)"
+nix build ".#darwinConfigurations.$NIXHOST.system"
+```
+
 **First install** (until `darwin-rebuild` exists — run once):
 
 ```bash
 sudo nix run github:LnL7/nix-darwin/master -- switch --flake ".#${NIXHOST}"
 ```
 
+**Fish** (same command; ensure `NIXHOST` is set as above):
+
+```fish
+sudo nix run github:LnL7/nix-darwin/master -- switch --flake ".#$NIXHOST"
+```
+
 If `sudo nix` complains flakes are disabled, use:
 
 ```bash
 sudo nix --extra-experimental-features "nix-command flakes" run github:LnL7/nix-darwin/master -- switch --flake ".#${NIXHOST}"
+```
+
+**Fish:**
+
+```fish
+sudo nix --extra-experimental-features "nix-command flakes" run github:LnL7/nix-darwin/master -- switch --flake ".#$NIXHOST"
 ```
 
 **Later changes:**
@@ -133,10 +157,21 @@ cd ~/.config/nix
 sudo darwin-rebuild switch --flake ".#${NIXHOST}"
 ```
 
+**Fish:**
+
+```fish
+cd ~/.config/nix
+sudo darwin-rebuild switch --flake ".#$NIXHOST"
+```
+
 **`nix build` fails “attribute … does not exist”:** add or fix the host key in
 `machines.nix`, or set `NIXHOST` manually to that exact string.
 
-**`echo NIXHOST` prints `NIXHOST`:** use `echo "$NIXHOST"` (needs `$`).
+**`echo NIXHOST` prints `NIXHOST`:** use `echo "$NIXHOST"` in bash/zsh or
+`echo $NIXHOST` in Fish (needs `$`).
+
+**Fish `#` note:** pass flake refs in **double quotes** (e.g. `".#$NIXHOST"` or
+`".#darwinConfigurations.$NIXHOST.system"`) so `#` is not parsed as a comment.
 
 **“Unexpected files in /etc”:** rename existing `/etc/nix/nix.conf`, `/etc/bashrc`,
 `/etc/zshrc` as in older docs, re-add flakes to `/etc/nix/nix.conf`, retry bootstrap.
@@ -258,7 +293,21 @@ export LDFLAGS="-L${P}/opt/zlib/lib -L${P}/opt/bzip2/lib -L${P}/opt/readline/lib
 export CPPFLAGS="-I${P}/opt/zlib/include -I${P}/opt/bzip2/include -I${P}/opt/readline/include -I${P}/opt/sqlite/include -I${P}/opt/libffi/include -I${P}/opt/openssl@3/include"
 export PKG_CONFIG_PATH="${P}/opt/sqlite/lib/pkgconfig:${P}/opt/zlib/lib/pkgconfig:${P}/opt/libffi/lib/pkgconfig:${P}/opt/openssl@3/lib/pkgconfig"
 
-asdf uninstall python 3.14.6t   # use exact name from: asdf list python
+asdf uninstall python 3.14.6t   # exact name from: asdf list python
+asdf install python 3.14.6t
+```
+
+**Fish** (same flags; `set -gx` exports for child processes such as `asdf`):
+
+```fish
+cd ~/.config/nix
+brew bundle install
+set P (brew --prefix)
+set -gx LDFLAGS "-L$P/opt/zlib/lib -L$P/opt/bzip2/lib -L$P/opt/readline/lib -L$P/opt/sqlite/lib -L$P/opt/libffi/lib -L$P/opt/openssl@3/lib"
+set -gx CPPFLAGS "-I$P/opt/zlib/include -I$P/opt/bzip2/include -I$P/opt/readline/include -I$P/opt/sqlite/include -I$P/opt/libffi/include -I$P/opt/openssl@3/include"
+set -gx PKG_CONFIG_PATH "$P/opt/sqlite/lib/pkgconfig:$P/opt/zlib/lib/pkgconfig:$P/opt/libffi/lib/pkgconfig:$P/opt/openssl@3/lib/pkgconfig"
+
+asdf uninstall python 3.14.6t   # exact name from: asdf list python
 asdf install python 3.14.6t
 ```
 
@@ -284,6 +333,15 @@ nix flake update
 sudo darwin-rebuild switch --flake ".#${NIXHOST}"
 ```
 
+**Fish:**
+
+```fish
+cd ~/.config/nix
+set -gx NIXHOST (scutil --get LocalHostName)
+nix flake update
+sudo darwin-rebuild switch --flake ".#$NIXHOST"
+```
+
 ---
 
 ## Day-to-day
@@ -294,12 +352,26 @@ export NIXHOST="$(scutil --get LocalHostName)"   # or your fixed machines.nix ke
 sudo darwin-rebuild switch --flake ".#${NIXHOST}"
 ```
 
+**Fish:**
+
+```fish
+cd ~/.config/nix
+set -gx NIXHOST (scutil --get LocalHostName)   # or: set -gx NIXHOST "Your-machines.nix-key"
+sudo darwin-rebuild switch --flake ".#$NIXHOST"
+```
+
 Do **not** edit `~/.config/fish/config.fish` directly — it is managed by Nix. Change
 sources under `modules/` and rebuild.
 
 **What runs where:** Nix = shell, dotfiles, macOS defaults, CLI; **asdf** = Python/Node
 per `.tool-versions`; **Homebrew** = casks and kraken `inv install-system-deps`
 packages.
+
+**Oh My Fish:** enabled via `modules/fish/omf.nix` (nixpkgs `oh-my-fish`). Framework is
+read-only under the Nix store; install themes/packages with `omf install …` (state under
+`~/.config/omf`). If nothing loads, run **`omf install default`** once. You still have
+**home-manager** Fish plugins in `fish-plugins.nix` — avoid duplicating the same feature
+in both places.
 
 ---
 
@@ -321,10 +393,10 @@ as dumping an entire plist:
 
 ---
 
----
-
 ## Acknowledgments
 
 - [nix-darwin](https://github.com/LnL7/nix-darwin)
 - [home-manager](https://github.com/nix-community/home-manager)
 - [AeroSpace](https://github.com/nikitabobko/AeroSpace)
+
+Never commit private keys, `.env`, or `gpg-signing-key.asc`.

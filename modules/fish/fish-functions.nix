@@ -7,8 +7,10 @@ let
     "gcl.fish" = ./fish-functions/gcl.fish;
     "gh-commit-link.fish" = ./fish-functions/gh-commit-link.fish;
     "git-rebase-on-master.fish" = ./fish-functions/git-rebase-on-master.fish;
+    "git.fish" = ./fish-functions/git.fish;
     "glom.fish" = ./fish-functions/glom.fish;
     "kraken-client.fish" = ./fish-functions/kraken-client.fish;
+    "kraken_core_helpers.fish" = ./fish-functions/kraken_core_helpers.fish;
     "kraken_core_pull.fish" = ./fish-functions/kraken_core_pull.fish;
     "kraken_core_setup.fish" = ./fish-functions/kraken_core_setup.fish;
     "pri.fish" = ./fish-functions/pri.fish;

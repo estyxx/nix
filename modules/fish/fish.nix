@@ -5,7 +5,6 @@
   environment.shells = with pkgs; [ fish ];
   environment.systemPackages = with pkgs; [
     fish
-    fzf
   ];
 
   # Add Homebrew to system PATH

@@ -1,10 +1,12 @@
-
 function kraken_core_pull
-    # Pull the current branch
-    git pull origin (__git.current_branch)
+    set -l branch (__git.current_branch)
 
-    # Check if the branch is main or master, then run the extra command
-    if string match -q -r '^(main|master)$' (__git.current_branch)
-        inv install-python-deps
+    git pull origin $branch
+    set -l pull_status $status
+
+    if test $pull_status -eq 0
+        __kraken_core_post_pull
     end
+
+    return $pull_status
 end

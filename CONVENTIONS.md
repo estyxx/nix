@@ -54,7 +54,8 @@ should not be used.
 | New system package         | `modules/common-packages.nix`                                           |
 | macOS default              | `modules/mac.nix`                                                       |
 | AeroSpace                  | `modules/aerospace.toml`                                                |
-| Fish plugin                | `modules/fish/fisher-plugins.nix`                                       |
+| Fish plugin                | `modules/fish/fish-plugins.nix`                                         |
+| Oh My Fish                 | `modules/fish/omf.nix`                                                  |
 | Cursor settings (work)     | `modules/cursor/settings-kraken.json`                                   |
 | Cursor settings (personal) | `modules/cursor/settings.json`                                          |
 | Cursor extensions (work)   | `modules/cursor/extensions-kraken.json` (reference; install via README) |

@@ -1,4 +1,4 @@
-# Remove legacy Fisher/Tide/Hydro files superseded by home-manager plugins.
+# Remove legacy Fisher / Tide / Hydro files superseded by home-manager Fish plugins.
 { lib, ... }:
 {
   home.activation.cleanupLegacyFish = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

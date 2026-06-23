@@ -5,8 +5,12 @@ function kraken_core_setup --on-variable PWD
 
     # Check if we're in the kraken-core directory
     if test "$PWD" = "$kraken_core_dir"
-        # Activate virtual environment
-        source ~/.virtualenvs/kraken-core/bin/activate.fish
+        # Activate project venv (not ~/.virtualenvs)
+        if test -f "$kraken_core_dir/.venv/bin/activate.fish"
+            if not set -q VIRTUAL_ENV; or test "$VIRTUAL_ENV" != "$kraken_core_dir/.venv"
+                source "$kraken_core_dir/.venv/bin/activate.fish"
+            end
+        end
 
         # Set environment variables globally and persistently
         set -Ux KRAKEN_CLIENT TotalEnergiesGB
