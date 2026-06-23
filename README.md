@@ -24,243 +24,165 @@ for coding standards.
 
 ---
 
-## New Mac setup (follow in order)
+## New Mac setup
 
-**Checklist**
+Do these in order. **Personal Mac:** skip step 7 (GPG). **Work (kraken):** do all steps.
 
-| Step | What                                      | Personal Mac | Work (kraken)        |
-| ---- | ----------------------------------------- | ------------ | -------------------- |
-| 1–4  | Nix, Homebrew, clone repo, `machines.nix` | ✓            | ✓                    |
-| 5    | **SSH key → paste in GitHub** (browser)   | ✓ required   | ✓ required           |
-| 6    | GPG secret import                         | skip         | ✓ if signing commits |
-| 7    | `darwin-rebuild switch`                   | ✓            | ✓                    |
-| 8+   | Fish shell, Brewfile, apps                | ✓            | ✓                    |
+### 1. Install Nix and enable flakes
 
-### 1. Prerequisites
-
-Apple Silicon or Intel Mac, admin access, terminal.
-
-### 2. Nix + flakes (needed before `sudo nix run …`)
-
-Install [Nix](https://nixos.org/download.html) (multi-user recommended). **Root** only
-reads `/etc/nix/nix.conf` for `sudo nix`, so enable flakes there:
+Install [Nix](https://nixos.org/download.html) (multi-user). Then:
 
 ```bash
 sudo mkdir -p /etc/nix
 printf '%s\n' 'experimental-features = nix-command flakes' | sudo tee /etc/nix/nix.conf
 ```
 
-You can mirror the same line in `~/.config/nix/nix.conf` for non-sudo `nix`. Restart the
-terminal after installing Nix.
+Restart the terminal.
 
-### 3. Homebrew (recommended)
+### 2. Install Homebrew
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-Follow the printed `eval "$(…/brew shellenv)"` instructions.
+Run the `eval "$(…/brew shellenv)"` line the installer prints.
 
-### 4. Clone this repo
+### 3. Clone this repo
 
 ```bash
 git clone https://github.com/estyxx/nix.git ~/.config/nix
 cd ~/.config/nix
 ```
 
-### 5. Register this Mac in `modules/machines.nix`
+### 4. Add this Mac to `modules/machines.nix`
 
-The **quoted key** (left-hand side) must match what you pass to the flake as `.#Name`.
-
-Usually it matches **Bonjour / local hostname**:
+Hostname (must match the quoted key in the file):
 
 ```bash
 scutil --get LocalHostName
 ```
 
-Add an entry (personal example):
+Personal example:
 
 ```nix
-{
-  "Your-LocalHostName" = {
-    username = "you.shorthost"; # must match whoami / /Users/you.shorthost
-    system = "aarch64-darwin"; # or x86_64-darwin on Intel
-    profile = "personal";
-  };
-}
+"Your-LocalHostName" = {
+  username = "you.shorthost";  # whoami
+  system = "aarch64-darwin";
+  profile = "personal";
+};
 ```
 
-Work (Kraken) profile: use `profile = "kraken"` and add `git.signingKey = "HEXID";` as
-in existing entries in `machines.nix`.
+Work (kraken): `profile = "kraken"` and `git.signingKey = "HEXID";` — see existing
+entries in `machines.nix`.
 
-### 6. GitHub SSH key (required on every new Mac)
+Commit and push if you edited on another machine first; on a fresh clone, edit locally
+before step 8.
 
-**Why this feels manual:** Each Mac gets its **own** SSH key. GitHub only trusts public
-keys you register in the browser — nothing in this repo can click “New SSH key” for you.
-If your last setup felt automatic, you probably either (a) added the key once and
-forgot, (b) copied `~/.ssh` from another machine, or (c) confused **GPG** (commit
-signing) with **SSH** (clone/push). Importing `gpg-signing-key.asc` does **not** fix
-`ssh -T git@github.com`.
+### 5. Create an SSH key
 
-|                      | SSH (`~/.ssh/id_ed25519`)                    | GPG (`gpg-signing-key.asc`)                  |
-| -------------------- | -------------------------------------------- | -------------------------------------------- |
-| **Used for**         | `git clone git@github.com:…`, `git push`     | “Verified” signed commits                    |
-| **GitHub page**      | [SSH keys](https://github.com/settings/keys) | [GPG keys](https://github.com/settings/gpg)  |
-| **Per new Mac?**     | Yes — new key unless you copy `~/.ssh`       | Only if this Mac signs commits (kraken)      |
-| **Personal profile** | Do this step                                 | Skip (no `git.signingKey` in `machines.nix`) |
-
-#### 6a. Create key and register on GitHub
-
-From `~/.config/nix`:
+Each Mac needs its own key. GitHub only trusts keys you paste in the browser — importing
+GPG does not help here.
 
 ```bash
+cd ~/.config/nix
 ./setup-ssh-key.sh
 ```
 
-The script prints your **public** key (one line starting with `ssh-ed25519`). **You must
-paste it on GitHub before `ssh -T` will work:**
+### 6. Add the SSH key to GitHub
 
-1. Open [github.com/settings/keys](https://github.com/settings/keys) → **New SSH key**
-2. Title: e.g. `Esters-MacBook-Pro 2026`
-3. Paste the full line from the script (or `cat ~/.ssh/id_ed25519.pub`)
-4. Save
+Copy the public key the script printed (or `cat ~/.ssh/id_ed25519.pub`).
 
-Then load the key and test (success = `Hi estyxx! You've successfully authenticated…`):
+1. [github.com/settings/keys](https://github.com/settings/keys) → **New SSH key**
+2. Paste the full `ssh-ed25519 …` line, save
+
+Test before continuing:
 
 ```bash
 ssh-add --apple-use-keychain ~/.ssh/id_ed25519
 ssh -T git@github.com
 ```
 
-**Do not continue to §7 until this works.** Cloning this repo over HTTPS works without
-SSH; everything else (`git@github.com:…`, kraken-core) needs the step above.
+Expect: `Hi estyxx! You've successfully authenticated…`
 
-#### 6b. GPG signing (kraken / work Mac only)
+### 7. Import GPG signing key (work / kraken only)
 
-Skip on **personal** (`profile = "personal"` — no `git.signingKey` in `machines.nix`).
+Skip on personal Macs (`profile = "personal"`).
 
-On **work**, export on a machine that already has the key:
+On a machine that already has the key:
 
 ```bash
 gpg --export-secret-keys --armor KEYID > gpg-signing-key.asc
 ```
 
-Copy `gpg-signing-key.asc` to this Mac (never commit — gitignored), then:
+Copy the file to this Mac (never commit — gitignored), then:
 
 ```bash
 cd ~/.config/nix
 ./setup-gpg.sh
 ```
 
-The **public** GPG key on GitHub can stay as-is if you added it years ago; you only
-import the **secret** on each Mac that signs commits.
+### 8. Build and activate nix-darwin
 
-### 7. Build and activate nix-darwin (copy-paste)
-
-Run from **`~/.config/nix`**. This sets **`NIXHOST`** from macOS so you do not paste a
-hostname by hand. It **must** equal the quoted key in `modules/machines.nix` (if not,
-set it manually: **`export NIXHOST="Exact-Key"`** in bash/zsh, or
-**`set -gx NIXHOST Exact-Key`** in Fish).
+From `~/.config/nix`. `NIXHOST` must match the key in `modules/machines.nix`:
 
 ```bash
 cd ~/.config/nix
 export NIXHOST="$(scutil --get LocalHostName)"
-echo "NIXHOST=$NIXHOST  (must match modules/machines.nix)"
+echo "NIXHOST=$NIXHOST"
 nix build ".#darwinConfigurations.${NIXHOST}.system"
 ```
 
-**Fish:**
-
-```fish
-cd ~/.config/nix
-set -gx NIXHOST (scutil --get LocalHostName)
-echo "NIXHOST=$NIXHOST  (must match modules/machines.nix)"
-nix build ".#darwinConfigurations.$NIXHOST.system"
-```
-
-**First install** (until `darwin-rebuild` exists — run once):
+First install only (until `darwin-rebuild` exists):
 
 ```bash
 sudo nix run github:LnL7/nix-darwin/master -- switch --flake ".#${NIXHOST}"
 ```
 
-**Fish** (same command; ensure `NIXHOST` is set as above):
-
-```fish
-sudo nix run github:LnL7/nix-darwin/master -- switch --flake ".#$NIXHOST"
-```
-
-If `sudo nix` complains flakes are disabled, use:
+If `sudo nix` says flakes are disabled:
 
 ```bash
 sudo nix --extra-experimental-features "nix-command flakes" run github:LnL7/nix-darwin/master -- switch --flake ".#${NIXHOST}"
 ```
 
-**Fish:**
-
-```fish
-sudo nix --extra-experimental-features "nix-command flakes" run github:LnL7/nix-darwin/master -- switch --flake ".#$NIXHOST"
-```
-
-**Later changes:**
+Open a **new terminal** when it finishes. Later config changes:
 
 ```bash
-cd ~/.config/nix
 sudo darwin-rebuild switch --flake ".#${NIXHOST}"
 ```
 
-**Fish:**
+**Fish** — same commands; set host first:
 
 ```fish
 cd ~/.config/nix
+set -gx NIXHOST (scutil --get LocalHostName)
+nix build ".#darwinConfigurations.$NIXHOST.system"
+sudo nix run github:LnL7/nix-darwin/master -- switch --flake ".#$NIXHOST"
 sudo darwin-rebuild switch --flake ".#$NIXHOST"
 ```
 
-**`nix build` fails “attribute … does not exist”:** add or fix the host key in
-`machines.nix`, or set `NIXHOST` manually to that exact string.
+Use double quotes around flake refs in Fish so `#` is not a comment.
 
-**`echo NIXHOST` prints `NIXHOST`:** use `echo "$NIXHOST"` in bash/zsh or
-`echo $NIXHOST` in Fish (needs `$`).
-
-**Fish `#` note:** pass flake refs in **double quotes** (e.g. `".#$NIXHOST"` or
-`".#darwinConfigurations.$NIXHOST.system"`) so `#` is not parsed as a comment.
-
-**“Unexpected files in /etc”:** rename existing `/etc/nix/nix.conf`, `/etc/bashrc`,
-`/etc/zshrc` as in older docs, re-add flakes to `/etc/nix/nix.conf`, retry bootstrap.
-
-**`Could not write domain com.apple.universalaccess`:** use a `mac.nix` revision without
-`system.defaults.universalaccess`; set Zoom in **System Settings → Accessibility**.
-
-Open a **new terminal tab** after the first switch.
-
-### 8. Fish as login shell
+### 9. Set Fish as login shell
 
 ```bash
 chsh -s /run/current-system/sw/bin/fish
 ```
 
-Log out and back in (or at least open a new login terminal), then:
+Log out and back in (or open a new login terminal), then `fish --version`.
 
-```bash
-fish --version
-```
-
-`gpg-test` exists only on **kraken** profile machines (`git.signingKey` in
-`machines.nix`). Else test with `echo test | gpg --clearsign …`.
-
-### 9. Homebrew bundle, runtimes, Kraken deps
+### 10. Homebrew bundle and runtimes
 
 ```bash
 cd ~/.config/nix
 brew bundle install
-xcode-select --install   # if you have not (headers for Python builds)
+xcode-select --install   # if needed
 asdf plugin add python
 asdf plugin add nodejs
 asdf plugin update python
 ```
 
-Personal Mac: edit `Brewfile` and comment Kraken-only lines you do not need. Python
-build issues: see [One-shot Homebrew](#one-shot-homebrew-brewfile) below.
+Personal: comment Kraken-only lines in `Brewfile`. Python build issues:
+[One-shot Homebrew](#one-shot-homebrew-brewfile).
 
 Work machine with kraken-core:
 
@@ -269,7 +191,17 @@ cd ~/Projects/kraken-core
 inv install-system-deps
 ```
 
----
+### If something fails
+
+- **`nix build` — attribute does not exist:** fix the host key in `machines.nix` or set
+  `NIXHOST` to that exact string.
+- **`ssh -T` — Permission denied:** key not on GitHub yet, or wrong GitHub account.
+- **Unexpected files in `/etc`:** back up `/etc/nix/nix.conf`, `/etc/bashrc`,
+  `/etc/zshrc`, re-add flakes to `/etc/nix/nix.conf`, retry step 8.
+- **`com.apple.universalaccess`:** set Zoom in **System Settings → Accessibility** (not
+  managed by Nix on all macOS versions).
+
+Then continue with [After install](#after-install-system-settings-and-apps).
 
 ## After install: System Settings and apps
 
