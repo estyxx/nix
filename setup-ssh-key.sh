@@ -58,7 +58,7 @@ if [[ -f "$SSH_KEY_PATH" ]]; then
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         fi
         echo ""
-        print_info "Skip to step 6 below to add this key to GitHub if you haven't already."
+        print_info "If ssh -T git@github.com fails, add this key at https://github.com/settings/keys"
         exit 0
     fi
 fi
@@ -87,12 +87,9 @@ if ! pgrep -x ssh-agent > /dev/null; then
     eval "$(ssh-agent -s)"
 fi
 
-# Add SSH key to agent
-ssh-add "$SSH_KEY_PATH"
-
-# Add to macOS Keychain
-print_info "Adding SSH key to macOS Keychain..."
-# ssh-add --apple-use-keychain "$SSH_KEY_PATH"
+# Add SSH key to agent and macOS Keychain
+print_info "Adding SSH key to agent and macOS Keychain..."
+ssh-add --apple-use-keychain "$SSH_KEY_PATH" 2>/dev/null || ssh-add "$SSH_KEY_PATH"
 
 print_status "SSH key generation complete!"
 echo ""
@@ -104,32 +101,14 @@ cat "$SSH_KEY_PATH.pub"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-print_warning "SSH configuration should be managed through Nix!"
+print_warning "Required: add this public key to GitHub (browser — cannot be automated)"
 echo ""
-print_info "Add this to your Nix configuration (e.g., ssh.nix module):"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "programs.ssh = {"
-echo "  enable = true;"
-echo "  extraConfig = ''"
-echo "    Host github.com"
-echo "      HostName github.com"
-echo "      User git"
-echo "      IdentityFile ~/.ssh/id_ed25519"
-echo "      AddKeysToAgent yes"
-echo "      UseKeychain yes"
-echo "  '';"
-echo "};"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+print_info "Next steps (in order):"
+echo "1. Open https://github.com/settings/keys → New SSH key"
+echo "2. Paste the public key above; title e.g. '$(scutil --get LocalHostName 2>/dev/null || hostname) - $(date +%Y)'"
+echo "3. Test: ssh-add --apple-use-keychain $SSH_KEY_PATH && ssh -T git@github.com"
+echo "   (expect: Hi <user>! You've successfully authenticated…)"
+echo "4. Then run darwin-rebuild (see README §7): sudo nix run github:LnL7/nix-darwin/master -- switch --flake \".#\$(scutil --get LocalHostName)\""
 echo ""
-
-print_info "Next steps:"
-echo "1. Copy the public key above"
-echo "2. Add the SSH configuration to your Nix setup (see ssh.nix module below)"
-echo "3. Run: darwin-rebuild switch --flake ~/.config/nix"
-echo "4. Add the public key to GitHub:"
-echo "   - Go to GitHub Settings > SSH and GPG keys"
-echo "   - Click 'New SSH key'"
-echo "   - Paste the key and give it a title (e.g., 'MacBook Pro - $(date +%Y)')"
-echo "5. Test the connection: ssh -T git@github.com"
-echo "6. Try cloning again: git clone git@github.com:octoenergy/kraken-core.git"
+print_info "SSH client config is applied by Nix after darwin-rebuild (modules/git.nix)."
 echo ""

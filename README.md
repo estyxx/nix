@@ -26,6 +26,16 @@ for coding standards.
 
 ## New Mac setup (follow in order)
 
+**Checklist**
+
+| Step | What                                      | Personal Mac | Work (kraken)        |
+| ---- | ----------------------------------------- | ------------ | -------------------- |
+| 1–4  | Nix, Homebrew, clone repo, `machines.nix` | ✓            | ✓                    |
+| 5    | **SSH key → paste in GitHub** (browser)   | ✓ required   | ✓ required           |
+| 6    | GPG secret import                         | skip         | ✓ if signing commits |
+| 7    | `darwin-rebuild switch`                   | ✓            | ✓                    |
+| 8+   | Fish shell, Brewfile, apps                | ✓            | ✓                    |
+
 ### 1. Prerequisites
 
 Apple Silicon or Intel Mac, admin access, terminal.
@@ -83,25 +93,67 @@ Add an entry (personal example):
 Work (Kraken) profile: use `profile = "kraken"` and add `git.signingKey = "HEXID";` as
 in existing entries in `machines.nix`.
 
-### 6. SSH and GPG (work / signing — optional on personal)
+### 6. GitHub SSH key (required on every new Mac)
+
+**Why this feels manual:** Each Mac gets its **own** SSH key. GitHub only trusts public
+keys you register in the browser — nothing in this repo can click “New SSH key” for you.
+If your last setup felt automatic, you probably either (a) added the key once and
+forgot, (b) copied `~/.ssh` from another machine, or (c) confused **GPG** (commit
+signing) with **SSH** (clone/push). Importing `gpg-signing-key.asc` does **not** fix
+`ssh -T git@github.com`.
+
+|                      | SSH (`~/.ssh/id_ed25519`)                    | GPG (`gpg-signing-key.asc`)                  |
+| -------------------- | -------------------------------------------- | -------------------------------------------- |
+| **Used for**         | `git clone git@github.com:…`, `git push`     | “Verified” signed commits                    |
+| **GitHub page**      | [SSH keys](https://github.com/settings/keys) | [GPG keys](https://github.com/settings/gpg)  |
+| **Per new Mac?**     | Yes — new key unless you copy `~/.ssh`       | Only if this Mac signs commits (kraken)      |
+| **Personal profile** | Do this step                                 | Skip (no `git.signingKey` in `machines.nix`) |
+
+#### 6a. Create key and register on GitHub
 
 From `~/.config/nix`:
 
 ```bash
 ./setup-ssh-key.sh
+```
+
+The script prints your **public** key (one line starting with `ssh-ed25519`). **You must
+paste it on GitHub before `ssh -T` will work:**
+
+1. Open [github.com/settings/keys](https://github.com/settings/keys) → **New SSH key**
+2. Title: e.g. `Esters-MacBook-Pro 2026`
+3. Paste the full line from the script (or `cat ~/.ssh/id_ed25519.pub`)
+4. Save
+
+Then load the key and test (success = `Hi estyxx! You've successfully authenticated…`):
+
+```bash
+ssh-add --apple-use-keychain ~/.ssh/id_ed25519
+ssh -T git@github.com
+```
+
+**Do not continue to §7 until this works.** Cloning this repo over HTTPS works without
+SSH; everything else (`git@github.com:…`, kraken-core) needs the step above.
+
+#### 6b. GPG signing (kraken / work Mac only)
+
+Skip on **personal** (`profile = "personal"` — no `git.signingKey` in `machines.nix`).
+
+On **work**, export on a machine that already has the key:
+
+```bash
+gpg --export-secret-keys --armor KEYID > gpg-signing-key.asc
+```
+
+Copy `gpg-signing-key.asc` to this Mac (never commit — gitignored), then:
+
+```bash
+cd ~/.config/nix
 ./setup-gpg.sh
 ```
 
-**GPG secret key:** export on a machine that already has the key
-(`gpg --export-secret-keys --armor KEYID > gpg-signing-key.asc`), copy the file to this
-Mac (never commit it — `gpg-signing-key.asc` is gitignored), then run `./setup-gpg.sh`.
-Key id in `machines.nix` is public; the `.asc` file is secret.
-
-Add SSH public key at [GitHub → SSH keys](https://github.com/settings/keys). Test:
-
-```bash
-ssh -T git@github.com
-```
+The **public** GPG key on GitHub can stay as-is if you added it years ago; you only
+import the **secret** on each Mac that signs commits.
 
 ### 7. Build and activate nix-darwin (copy-paste)
 
