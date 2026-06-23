@@ -10,7 +10,12 @@ let
     "git.fish" = ./fish-functions/git.fish;
     "glom.fish" = ./fish-functions/glom.fish;
     "kraken-client.fish" = ./fish-functions/kraken-client.fish;
-    "kraken_core_helpers.fish" = ./fish-functions/kraken_core_helpers.fish;
+    "__kraken_core_dir.fish" = ./fish-functions/__kraken_core_dir.fish;
+    "__kraken_core_ensure_venv.fish" = ./fish-functions/__kraken_core_ensure_venv.fish;
+    "__kraken_core_is_repo.fish" = ./fish-functions/__kraken_core_is_repo.fish;
+    "__kraken_core_post_pull.fish" = ./fish-functions/__kraken_core_post_pull.fish;
+    "__kraken_core_requirements_changed_post_pull.fish" =
+      ./fish-functions/__kraken_core_requirements_changed_post_pull.fish;
     "kraken_core_pull.fish" = ./fish-functions/kraken_core_pull.fish;
     "kraken_core_setup.fish" = ./fish-functions/kraken_core_setup.fish;
     "pri.fish" = ./fish-functions/pri.fish;

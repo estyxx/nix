@@ -1,7 +1,8 @@
 function kraken_core_pull
     set -l branch (__git.current_branch)
 
-    git pull origin $branch
+    # Bypass git.fish wrapper — post_pull runs once below.
+    command git pull origin $branch
     set -l pull_status $status
 
     if test $pull_status -eq 0
